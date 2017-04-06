@@ -3,7 +3,18 @@
 
     <metadataFolder>/opt/digiverso/goobi/metadata/</metadataFolder>
     <tmpFolder>/tmp</tmpFolder>
-    <databaseName>goobi</databaseName>
+    
+	<databaseName>goobi</databaseName>
     <databaseUser>goobi</databaseUser>
     <databasePassword>goobi</databasePassword>
+	
+	<commandExport>/opt/digiverso/goobi/scripts/mysql_export.sh</commandExport>
+	<commandImport>/opt/digiverso/goobi/scripts/mysql_import.sh</commandImport>
+	
+	<!-- 
+	<commandExport>/usr/local/bin/mysqldump -u DATABASE_USER -pDATABASE_PASSWORD DATABASE_NAME > DATABASE_TEMPFILE</commandExport>
+	<commandImport>mysql -u DATABASE_USER -pDATABASE_PASSWORD DATABASE_NAME < DATABASE_TEMPFILE</commandImport>
+	-->
+	
+	
 </config_plugin>

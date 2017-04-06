@@ -41,7 +41,9 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
     private static String databaseName = "goobi";
     private static String databaseUser = "goobi";
     private static String databasePassword = "goobi";
-
+    private static String commandExport = "/bin/sh/export.sh";
+    private static String commandImport = "/bin/sh/import.sh";
+    
     private static final String PLUGIN_NAME = "DumpPlugin";
     private static final String GUI = "/uii/administration_Dump.xhtml";
     private Path importFile;
@@ -54,6 +56,8 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         databaseName = config.getString("databaseName", "goobi");
         databaseUser = config.getString("databaseUser", "goobi");
         databasePassword = config.getString("databasePassword", "goobi");
+        commandExport = config.getString("commandExport", "/usr/local/bin/mysqldump -u [USER] -p[PASSWORD] [DATABASE] > [TEMPFILE]");
+        commandImport = config.getString("commandImport", "/usr/local/bin/mysqldump -u [USER] -p[PASSWORD] [DATABASE] > [TEMPFILE]");
     }
 
     public void handleFileUpload(FileUploadEvent event) {
@@ -105,10 +109,16 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         Path database = Paths.get(sqlFolder.toString(), filesInSqlFolder.get(0));
         message += "Import sql dump.<br/>";
 
-        String[] command = { "/bin/sh", "-c", "mysql -u" + databaseUser + " -p" + databasePassword + " " + databaseName + " < " + database
-                .toString() };
+        String myCommand = commandImport.replaceAll("DATABASE_USER", databaseUser);
+        myCommand = myCommand.replaceAll("DATABASE_PASSWORD", databasePassword);
+        myCommand = myCommand.replaceAll("DATABASE_NAME", databaseName);
+        myCommand = myCommand.replaceAll("DATABASE_TEMPFILE", database.toString());
+        
+//        String[] command = { "/bin/sh", "-c", "mysql -u" + databaseUser + " -p" + databasePassword + " " + databaseName + " < " + database
+//                .toString() };
+        
         try {
-            Process runtimeProcess = Runtime.getRuntime().exec(command);
+            Process runtimeProcess = Runtime.getRuntime().exec(myCommand);
             int processComplete = runtimeProcess.waitFor();
             if (processComplete == 0) {
                 message += "Created database dump.<br/>";
@@ -181,10 +191,17 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         try {
 
             Path database = Files.createTempFile("goobi", ".sql");
-            String[] command = { "/bin/sh", "-c", "mysqldump -u" + databaseUser + " -p" + databasePassword + " " + databaseName + " > " + database
-                    .toString() };
-
-            Process runtimeProcess = Runtime.getRuntime().exec(command);
+            
+            String myCommand = commandExport.replaceAll("DATABASE_USER", databaseUser);
+            myCommand = myCommand.replaceAll("DATABASE_PASSWORD", databasePassword);
+            myCommand = myCommand.replaceAll("DATABASE_NAME", databaseName);
+            myCommand = myCommand.replaceAll("DATABASE_TEMPFILE", "/opt/digiverso/goobi/tmp/dump.sql");
+            
+//            String[] command = { "/bin/sh", "-c", "mysqldump -u" + databaseUser + " -p" + databasePassword + " " + databaseName + " > " + database
+//                    .toString() };
+            
+            
+            Process runtimeProcess = Runtime.getRuntime().exec(myCommand);
             int processComplete = runtimeProcess.waitFor();
             if (processComplete == 0) {
                 message += "Created database dump.<br/>";
