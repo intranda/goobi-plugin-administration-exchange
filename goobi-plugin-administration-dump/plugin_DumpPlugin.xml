@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config_plugin>
+
+    <metadataFolder>/opt/digiverso/goobi/metadata/</metadataFolder>
+    <tmpFolder>/tmp</tmpFolder>
+    <databaseName>goobi</databaseName>
+    <databaseUser>goobi</databaseUser>
+    <databasePassword>goobi</databasePassword>
+</config_plugin>
