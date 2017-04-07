@@ -44,6 +44,7 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
     private static String databasePassword = "goobi";
     private static String commandExport = "/bin/sh/export.sh";
     private static String commandImport = "/bin/sh/import.sh";
+    private static String dumpPath = "/opt/digiverso/goobi/tmp/goobi.sql";
     
     private static final String PLUGIN_NAME = "DumpPlugin";
     private static final String GUI = "/uii/administration_Dump.xhtml";
@@ -58,11 +59,12 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         XMLConfiguration config = ConfigPlugins.getPluginConfig(this);
         METADATA_FOLDER = config.getString("metadataFolder", "/opt/digiverso/goobi/metadata/");
         TMP_FOLDER = config.getString("tmpFolder", "/tmp");
+        
         databaseName = config.getString("databaseName", "goobi");
         databaseUser = config.getString("databaseUser", "goobi");
         databasePassword = config.getString("databasePassword", "goobi");
-        commandExport = config.getString("commandExport", "/usr/local/bin/mysqldump -u [USER] -p[PASSWORD] [DATABASE] > [TEMPFILE]");
-        commandImport = config.getString("commandImport", "/usr/local/bin/mysqldump -u [USER] -p[PASSWORD] [DATABASE] > [TEMPFILE]");
+        commandExport = config.getString("commandExport", "/bin/sh/export.sh");
+        commandImport = config.getString("commandImport", "/bin/sh/import.sh");
     }
     
     /**
@@ -70,16 +72,57 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
      * 
      * @param event
      */
-    public void handleFileUpload(FileUploadEvent event) {
+    public void uploadFile(FileUploadEvent event) {
         try {
             String filename = event.getFile().getFileName();
-            copyFile(filename, event.getFile().getInputstream());
+            storeUploadedFile(filename, event.getFile().getInputstream());
         } catch (IOException e) {
             log.error("IOException while uploading the zip file", e);
             messageList.add(new DumpMessage("IOException while uploading the zip file: " + e.getMessage(), DumpMessageStatus.ERROR));
         }
         //start the unzipping
         unzipUploadedFile();
+    }
+    
+    /**
+     * internal method to store the file that was uploaded
+     * @param fileName
+     * @param in
+     */
+    private void storeUploadedFile(String fileName, InputStream in) {
+        OutputStream out = null;
+        try {
+            String extension = fileName.substring(fileName.indexOf("."));
+            importFile = Files.createTempFile(fileName, extension);
+            out = new FileOutputStream(importFile.toFile());
+
+            int read = 0;
+            byte[] bytes = new byte[1024];
+            while ((read = in.read(bytes)) != -1) {
+                out.write(bytes, 0, read);
+            }
+            out.flush();
+        } catch (IOException e) {
+            log.error("IOException while copying the file " + fileName, e);
+            messageList.add(new DumpMessage("IOException while copying the file: " + e.getMessage(), DumpMessageStatus.ERROR));
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    log.error("Error while closing the InputStream", e);
+                    messageList.add(new DumpMessage("Error while closing the InputStream: " + e.getMessage(), DumpMessageStatus.ERROR));
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    log.error("Error while closing the OutputStream", e);
+                    messageList.add(new DumpMessage("Error while closing the OutputStream: " + e.getMessage(), DumpMessageStatus.ERROR));
+                }
+            }
+        }
     }
     
     /**
@@ -153,53 +196,12 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
             messageList.add(new DumpMessage("Exception while importing data from zip file: " + e.getMessage(), DumpMessageStatus.ERROR));
         }
     }
-    
-    /**
-     * internal method to do the file copying 
-     * @param fileName
-     * @param in
-     */
-    private void copyFile(String fileName, InputStream in) {
-        OutputStream out = null;
-        try {
-            String extension = fileName.substring(fileName.indexOf("."));
-            importFile = Files.createTempFile(fileName, extension);
-            out = new FileOutputStream(importFile.toFile());
-
-            int read = 0;
-            byte[] bytes = new byte[1024];
-            while ((read = in.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
-            }
-            out.flush();
-        } catch (IOException e) {
-            log.error("IOException while copying the file " + fileName, e);
-            messageList.add(new DumpMessage("IOException while copying the file: " + e.getMessage(), DumpMessageStatus.ERROR));
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    log.error("Error while closing the InputStream", e);
-                    messageList.add(new DumpMessage("Error while closing the InputStream: " + e.getMessage(), DumpMessageStatus.ERROR));
-                }
-            }
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    log.error("Error while closing the OutputStream", e);
-                    messageList.add(new DumpMessage("Error while closing the OutputStream: " + e.getMessage(), DumpMessageStatus.ERROR));
-                }
-            }
-        }
-    }
 
     
     /**
      * public bean method to create the mysql dump and put all content into a zip for the download
      */
-    public void downloadDump() {
+    public void downloadFile() {
         try {
             Path database = Files.createTempFile("goobi", ".sql");            
             String myCommand = commandExport.replaceAll("DATABASE_USER", databaseUser);
@@ -242,7 +244,6 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
             messageList.add(new DumpMessage("Exception while executing the download preparation: " + e.getMessage(), DumpMessageStatus.ERROR));
         }
     }
-
     
     /**
      * private method to add content to zip file
@@ -299,6 +300,30 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
     @Override
     public String getGui() {
         return GUI;
+    }
+    
+    public static void main(String[] args) throws IOException, InterruptedException{
+		DumpPlugin dp = new DumpPlugin();
+		
+		String[] command1 = { "/usr/local/bin/mysqldump", "-u goobi -pgoobi goobi > /opt/digiverso/goobi/tmp/goobi2.sql" };
+		String command2 = "/usr/local/bin/mysqldump -u goobi -pgoobi goobi > /opt/digiverso/goobi/tmp/goobi2.sql";
+        
+        System.out.println("Creating database dump.");
+        Process runtimeProcess = Runtime.getRuntime().exec(command2);
+        int processComplete = runtimeProcess.waitFor();
+        if (processComplete == 0) {
+        	System.out.println("Created SQL dump successfully.");
+        } else {
+        	System.out.println("Error during creation of database dump: " +  processComplete);
+        }
+	}
+    
+    private String commandReplace(String inCommand){
+    	String myCommand = inCommand.replaceAll("DATABASE_USER", databaseUser);
+        myCommand = myCommand.replaceAll("DATABASE_PASSWORD", databasePassword);
+        myCommand = myCommand.replaceAll("DATABASE_NAME", databaseName);
+        myCommand = myCommand.replaceAll("DATABASE_TEMPFILE", dumpPath);
+        return myCommand;
     }
 
 }

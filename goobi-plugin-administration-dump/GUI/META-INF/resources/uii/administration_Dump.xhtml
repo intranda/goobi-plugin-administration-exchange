@@ -54,7 +54,7 @@
                         </div>
                         <div class="box-content nopadding">
                             <h:panelGroup id="file">
-                                <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.handleFileUpload}" id="upload" auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.selectFiles}" allowTypes="/(\.|\/)(zip)$/" />
+                                <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.uploadFile}" id="upload" auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.selectFiles}" allowTypes="/(\.|\/)(zip)$/" />
                             </h:panelGroup>
                         </div>
                     </div>
@@ -72,11 +72,10 @@
 			
             <p:poll interval="10" update="downloadArea" />
 
-            <h:commandLink id="download" title="#{msgs.downloadDump}" action="#{AdministrationForm.administrationPlugin.downloadDump}" styleClass="btn btn-primary submitOnEnter pull-right font-size-s margin-bottom-most lightgrey margin-top-10">
-                <i class="fa fa-file-excel-o margin-right-5" />
-                <h:outputText value="#{msgs.downloadDump}" />
+            <h:commandLink id="download" title="#{msgs.plugin_dump_downloadDump}" action="#{AdministrationForm.administrationPlugin.downloadFile}" 
+            	styleClass="btn btn-primary submitOnEnter pull-right font-size-s margin-bottom-most margin-top-10">
+                <h:outputText value="#{msgs.plugin_dump_downloadDump}" />
             </h:commandLink>
-
 
         </h:form>
 
