@@ -1,5 +1,6 @@
 package de.intranda.goobi.plugins;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -38,13 +39,11 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 public class DumpPlugin implements IAdministrationPlugin, IPlugin {
 
     private static String METADATA_FOLDER = "/opt/digiverso/goobi/metadata/";
+    private static String dumpPath = "/opt/digiverso/goobi/tmp/goobi.sql";
     private static String TMP_FOLDER = "/tmp";
-    private static String databaseName = "goobi";
-    private static String databaseUser = "goobi";
-    private static String databasePassword = "goobi";
+
     private static String commandExport = "/bin/sh/export.sh";
     private static String commandImport = "/bin/sh/import.sh";
-    private static String dumpPath = "/opt/digiverso/goobi/tmp/goobi.sql";
     
     private static final String PLUGIN_NAME = "DumpPlugin";
     private static final String GUI = "/uii/administration_Dump.xhtml";
@@ -59,10 +58,7 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         XMLConfiguration config = ConfigPlugins.getPluginConfig(this);
         METADATA_FOLDER = config.getString("metadataFolder", "/opt/digiverso/goobi/metadata/");
         TMP_FOLDER = config.getString("tmpFolder", "/tmp");
-        
-        databaseName = config.getString("databaseName", "goobi");
-        databaseUser = config.getString("databaseUser", "goobi");
-        databasePassword = config.getString("databasePassword", "goobi");
+       
         commandExport = config.getString("commandExport", "/bin/sh/export.sh");
         commandImport = config.getString("commandImport", "/bin/sh/import.sh");
     }
@@ -166,16 +162,11 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         Path database = Paths.get(sqlFolder.toString(), filesInSqlFolder.get(0));
         messageList.add(new DumpMessage("Starting to import the uploaded SQL dump.", DumpMessageStatus.OK));
         
-        String myCommand = commandImport.replaceAll("DATABASE_USER", databaseUser);
-        myCommand = myCommand.replaceAll("DATABASE_PASSWORD", databasePassword);
-        myCommand = myCommand.replaceAll("DATABASE_NAME", databaseName);
-        myCommand = myCommand.replaceAll("DATABASE_TEMPFILE", database.toString());
-        
 //        String[] command = { "/bin/sh", "-c", "mysql -u" + databaseUser + " -p" + databasePassword + " " + databaseName + " < " + database
 //                .toString() };
         
         try {
-            Process runtimeProcess = Runtime.getRuntime().exec(myCommand);
+            Process runtimeProcess = Runtime.getRuntime().exec(commandImport);
             int processComplete = runtimeProcess.waitFor();
             if (processComplete == 0) {
                 messageList.add(new DumpMessage("SQL dump successfully imported", DumpMessageStatus.OK));
@@ -202,19 +193,14 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
      * public bean method to create the mysql dump and put all content into a zip for the download
      */
     public void downloadFile() {
-        try {
-            Path database = Files.createTempFile("goobi", ".sql");            
-            String myCommand = commandExport.replaceAll("DATABASE_USER", databaseUser);
-            myCommand = myCommand.replaceAll("DATABASE_PASSWORD", databasePassword);
-            myCommand = myCommand.replaceAll("DATABASE_NAME", databaseName);
-            myCommand = myCommand.replaceAll("DATABASE_TEMPFILE", "/opt/digiverso/goobi/tmp/dump.sql");
-            
-//            String[] command = { "/bin/sh", "-c", "mysqldump -u" + databaseUser + " -p" + databasePassword + " " + databaseName + " > " + database
-//                    .toString() };
-            
+        try {            
+        	// create an SQL dump
             messageList.add(new DumpMessage("Creating database dump.", DumpMessageStatus.OK));
-            Process runtimeProcess = Runtime.getRuntime().exec(myCommand);
+            String[] command = commandReplace(commandExport);
+            Process runtimeProcess = Runtime.getRuntime().exec(command);
             int processComplete = runtimeProcess.waitFor();
+            
+            // check if SQL dump generation was successfull
             if (processComplete == 0) {
                 messageList.add(new DumpMessage("Created SQL dump successfully", DumpMessageStatus.OK));
             } else {
@@ -222,6 +208,7 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
                 return;
             }
 
+            // prepare zip generation
             FacesContext facesContext = FacesContextHelper.getCurrentFacesContext();
             HttpServletResponse response = (HttpServletResponse) facesContext.getExternalContext().getResponse();
             OutputStream out = response.getOutputStream();
@@ -229,13 +216,17 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
             response.setHeader("Content-Disposition", "attachment;filename=\"goobidump.zip\"");
             ZipOutputStream zos = new ZipOutputStream(out);
 
+            // add database into zip
             messageList.add(new DumpMessage("Add database dump to archive", DumpMessageStatus.OK));
-            addDirToArchive(zos, database, TMP_FOLDER);
+            Path sqlDump = Paths.get(dumpPath);
+            addDirToArchive(zos, sqlDump, TMP_FOLDER);
 
+            // add all metadata content into zip
             messageList.add(new DumpMessage("Add metadata folder to archive", DumpMessageStatus.OK));
             Path srcDir = Paths.get(METADATA_FOLDER);
             addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
 
+            // close all connections and streams
             zos.close();
             out.flush();
             facesContext.responseComplete();
@@ -305,11 +296,15 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
     public static void main(String[] args) throws IOException, InterruptedException{
 		DumpPlugin dp = new DumpPlugin();
 		
-		String[] command1 = { "/usr/local/bin/mysqldump", "-u goobi -pgoobi goobi > /opt/digiverso/goobi/tmp/goobi2.sql" };
-		String command2 = "/usr/local/bin/mysqldump -u goobi -pgoobi goobi > /opt/digiverso/goobi/tmp/goobi2.sql";
+		String bla = "/bin/sh, -c, /usr/local/bin/mysqldump -u goobi -pgoobi goobi > /opt/digiverso/goobi/tmp/goobi.sql";
+		String[] command1 = bla.split(", ");
+		
+//		String[] command1 = { "/bin/sh" , "-c", "/usr/local/bin/mysqldump -u goobi -pgoobi goobi > /opt/digiverso/goobi/tmp/goobi2.sql" };
+//		String command2 = "/usr/local/bin/mysqldump -u goobi -pgoobi goobi > /opt/digiverso/goobi/tmp/goobi2.sql";
+//		String command3 = "/opt/digiverso/goobi/scripts/mysql_export.sh";
         
         System.out.println("Creating database dump.");
-        Process runtimeProcess = Runtime.getRuntime().exec(command2);
+        Process runtimeProcess = Runtime.getRuntime().exec(command1);
         int processComplete = runtimeProcess.waitFor();
         if (processComplete == 0) {
         	System.out.println("Created SQL dump successfully.");
@@ -318,12 +313,9 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         }
 	}
     
-    private String commandReplace(String inCommand){
-    	String myCommand = inCommand.replaceAll("DATABASE_USER", databaseUser);
-        myCommand = myCommand.replaceAll("DATABASE_PASSWORD", databasePassword);
-        myCommand = myCommand.replaceAll("DATABASE_NAME", databaseName);
-        myCommand = myCommand.replaceAll("DATABASE_TEMPFILE", dumpPath);
-        return myCommand;
+    private String[] commandReplace(String inCommand){
+    	String myCommand = inCommand.replaceAll("DATABASE_TEMPFILE", dumpPath);
+    	return myCommand.split(", ");
     }
 
 }
