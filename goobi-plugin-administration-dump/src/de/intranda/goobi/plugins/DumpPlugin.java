@@ -39,7 +39,9 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 public class DumpPlugin implements IAdministrationPlugin, IPlugin {
 
     private static String METADATA_FOLDER = "/opt/digiverso/goobi/metadata/";
-    private static String dumpPath = "/opt/digiverso/goobi/tmp/goobi.sql";
+    private static String SQL_DUMP_PATH = "/opt/digiverso/goobi/tmp/goobi.sql";
+    private static String ZIP_SQL_DUMP_PATH = "/sql";
+    
     private static String TMP_FOLDER = "/tmp";
 
     private static String commandExport = "/bin/sh/export.sh";
@@ -49,6 +51,9 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
     private static final String GUI = "/uii/administration_Dump.xhtml";
     private Path importFile;
     private List<DumpMessage> messageList;
+    private int numberAllFiles = 0;
+    private int numberCurrentFile = 0;
+    
     
     /**
      * Constructor for parameter initialisation from config file
@@ -218,11 +223,13 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
 
             // add database into zip
             messageList.add(new DumpMessage("Add database dump to archive", DumpMessageStatus.OK));
-            Path sqlDump = Paths.get(dumpPath);
-            addDirToArchive(zos, sqlDump, TMP_FOLDER);
+            Path sqlDump = Paths.get(SQL_DUMP_PATH);
+            addDirToArchive(zos, sqlDump, ZIP_SQL_DUMP_PATH);
 
             // add all metadata content into zip
             messageList.add(new DumpMessage("Add metadata folder to archive", DumpMessageStatus.OK));
+            numberAllFiles = getFilesCount(new File (METADATA_FOLDER));
+            numberCurrentFile = 0;
             Path srcDir = Paths.get(METADATA_FOLDER);
             addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
 
@@ -237,15 +244,45 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
     }
     
     /**
+     * private method count the number of files in the path and in its subdirectories
+     * 
+     * @param file
+     */
+    private int getFilesCount(File file) {
+	  File[] files = file.listFiles();
+	  int count = 0;
+	  for (File f : files)
+	    if (f.isDirectory())
+	      count += getFilesCount(f);
+	    else
+	      count++;
+
+	  return count;
+	}
+    
+    /**
+     * public getter to receive the progress in percent
+     * 
+     * @param file
+     */
+    public int getProgress(){
+    	if (numberAllFiles==0){
+    		return 0;
+    	}else{
+    		int result = 100 * numberCurrentFile / numberAllFiles;
+    		return result;
+    	}
+    }
+    
+    /**
      * private method to add content to zip file
      * 
      * @param zos
      * @param srcFile
      * @param parrentDirectoryName
      */
-    private void addDirToArchive(ZipOutputStream zos, Path srcFile, String parrentDirectoryName) {
-
-        String zipEntryName = srcFile.toFile().getName();
+    private void addDirToArchive(ZipOutputStream zos, Path srcFile, String parrentDirectoryName) throws IOException {
+    	String zipEntryName = srcFile.toFile().getName();
         if (StringUtils.isNotBlank(parrentDirectoryName)) {
             zipEntryName = parrentDirectoryName + "/" + srcFile.toFile().getName();
         }
@@ -258,7 +295,8 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
             }
 
         } else {
-            try {
+        	numberCurrentFile++;
+//            try {
                 // create byte buffer
                 byte[] buffer = new byte[1024];
                 FileInputStream fis = new FileInputStream(srcFile.toFile());
@@ -271,10 +309,10 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
 
                 // close the InputStream
                 fis.close();
-            } catch (IOException e) {
-                log.error("IOException happened while creating the zip file", e);
-                messageList.add(new DumpMessage("IOException happened while creating the zip file: " + e.getMessage(), DumpMessageStatus.ERROR));
-            }
+//            } catch (IOException e) {
+//                log.error("IOException happened while creating the zip file", e);
+//                messageList.add(new DumpMessage("IOException happened while creating the zip file: " + e.getMessage(), DumpMessageStatus.ERROR));
+//            }
         }
     }
 
@@ -314,7 +352,7 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
 	}
     
     private String[] commandReplace(String inCommand){
-    	String myCommand = inCommand.replaceAll("DATABASE_TEMPFILE", dumpPath);
+    	String myCommand = inCommand.replaceAll("DATABASE_TEMPFILE", SQL_DUMP_PATH);
     	return myCommand.split(", ");
     }
 
