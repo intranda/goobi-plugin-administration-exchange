@@ -5,44 +5,44 @@
 
     <composite:implementation>
         <style>
-#upload .ui-widget-header {
-    background: #fff none repeat scroll 0 0;
-}
-
-#upload .ui-fileupload-choose {
-    background: #368ee0 none repeat scroll 0 0;
-    color: #fff;
-    text-shadow: none;
-    border: 0 none;
-    padding: 0.3em 1em;
-    font-weight: 400;
-    float: right;
-    margin-right: 15px;
-}
-
-#upload .ui-fileupload-buttonbar span.ui-button .ui-button-text {
-    padding: 0.3em 1em;
-}
-
-#upload .ui-fileupload-buttonbar span.ui-button span.ui-button-icon-left {
-    display: none;
-}
-
-#upload .ui-fileupload-files {
-    width: 100%;
-}
-
-#upload .ui-fileupload-files td:first-child {
-    display: none;
-}
-
-#project {
-    border: 0;
-    padding: 0;
-}
-</style>
+			#upload .ui-widget-header {
+			    background: #fff none repeat scroll 0 0;
+			}
+			
+			#upload .ui-fileupload-choose {
+			    background: #368ee0 none repeat scroll 0 0;
+			    color: #fff;
+			    text-shadow: none;
+			    border: 0 none;
+			    padding: 0.3em 1em;
+			    font-weight: 400;
+			    float: right;
+			    margin-right: 15px;
+			}
+			
+			#upload .ui-fileupload-buttonbar span.ui-button .ui-button-text {
+			    padding: 0.3em 1em;
+			}
+			
+			#upload .ui-fileupload-buttonbar span.ui-button span.ui-button-icon-left {
+			    display: none;
+			}
+			
+			#upload .ui-fileupload-files {
+			    width: 100%;
+			}
+			
+			#upload .ui-fileupload-files td:first-child {
+			    display: none;
+			}
+			
+			#project {
+			    border: 0;
+			    padding: 0;
+			}
+		</style>
+        
         <h:form prependId="false" enctype="multipart/form-data" id="fileupload" styleClass="form-horizontal form-bordered">
-
             <h:panelGroup layout="block" styleClass="row" id="import">
                 <div class="col-sm-12">
                     <div class="box box-color orange box-bordered">
@@ -53,9 +53,6 @@
                             </h3>
                         </div>
                         <div class="box-content nopadding">
-
-
-
                             <h:panelGroup id="file">
                                 <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.handleFileUpload}" id="upload" auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.selectFiles}" allowTypes="/(\.|\/)(zip)$/" />
                             </h:panelGroup>
@@ -65,15 +62,19 @@
             </h:panelGroup>
         </h:form>
 
-
-        <h:form>
-            <h:outputText escape="false" value="#{AdministrationForm.administrationPlugin.message}" id="downloadArea"></h:outputText>
+        <h:form id="downloadArea">
+			<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.messageList}" id="messagelist">
+				<span class="block margin-bottom-10"> 
+					<i class="margin-right-10 fa #{item.status == 'OK' ? 'fa-check font-green' : 'fa-exclamation-triangle font-red'}"></i>
+					<h:outputText value="#{item.message}" /> 
+				</span>
+			</ui:repeat>
+			
             <p:poll interval="10" update="downloadArea" />
 
             <h:commandLink id="download" title="#{msgs.downloadDump}" action="#{AdministrationForm.administrationPlugin.downloadDump}" styleClass="btn btn-primary submitOnEnter pull-right font-size-s margin-bottom-most lightgrey margin-top-10">
                 <i class="fa fa-file-excel-o margin-right-5" />
                 <h:outputText value="#{msgs.downloadDump}" />
-
             </h:commandLink>
 
 

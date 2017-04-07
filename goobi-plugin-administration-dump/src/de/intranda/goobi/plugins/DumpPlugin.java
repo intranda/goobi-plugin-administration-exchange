@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -27,9 +28,9 @@ import org.primefaces.event.FileUploadEvent;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.helper.FacesContextHelper;
 import de.sub.goobi.helper.NIOFileUtils;
-import net.xeoh.plugins.base.annotations.PluginImplementation;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
+import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @PluginImplementation
 @Log4j
@@ -47,9 +48,13 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
     private static final String PLUGIN_NAME = "DumpPlugin";
     private static final String GUI = "/uii/administration_Dump.xhtml";
     private Path importFile;
-    private String message = "";
-
+    private List<DumpMessage> messageList;
+    
+    /**
+     * Constructor for parameter initialisation from config file
+     */
     public DumpPlugin() {
+    	messageList = new ArrayList<DumpMessage>();
         XMLConfiguration config = ConfigPlugins.getPluginConfig(this);
         METADATA_FOLDER = config.getString("metadataFolder", "/opt/digiverso/goobi/metadata/");
         TMP_FOLDER = config.getString("tmpFolder", "/tmp");
@@ -59,22 +64,30 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         commandExport = config.getString("commandExport", "/usr/local/bin/mysqldump -u [USER] -p[PASSWORD] [DATABASE] > [TEMPFILE]");
         commandImport = config.getString("commandImport", "/usr/local/bin/mysqldump -u [USER] -p[PASSWORD] [DATABASE] > [TEMPFILE]");
     }
-
+    
+    /**
+     * public Eventhandler to allow a file upload
+     * 
+     * @param event
+     */
     public void handleFileUpload(FileUploadEvent event) {
         try {
             String filename = event.getFile().getFileName();
             copyFile(filename, event.getFile().getInputstream());
-
         } catch (IOException e) {
-            log.error(e);
+            log.error("IOException while uploading the zip file", e);
+            messageList.add(new DumpMessage("IOException while uploading the zip file: " + e.getMessage(), DumpMessageStatus.ERROR));
         }
-
+        //start the unzipping
         unzipUploadedFile();
     }
-
+    
+    /**
+     * internal method for unzipping the content of an uploaded zip file 
+     */
     private void unzipUploadedFile() {
         try {
-            message = "Unzipping uploaded file.<br/>";
+        	messageList.add(new DumpMessage("Starting to extract the uploaded ZIP file", DumpMessageStatus.OK));
             ZipInputStream zis = new ZipInputStream(new FileInputStream(importFile.toFile()));
             ZipEntry ze = zis.getNextEntry();
 
@@ -99,16 +112,17 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
             zis.closeEntry();
             zis.close();
 
-            message += "Extracted files.<br/>";
+            messageList.add(new DumpMessage("ZIP file successfully extracted.", DumpMessageStatus.OK));
         } catch (IOException e) {
-            log.error(e);
+            log.error("IOException while unzipping the uploaded file", e);
+            messageList.add(new DumpMessage("IOException while unzipping the uploaded: " + e.getMessage(), DumpMessageStatus.ERROR));
         }
 
         Path sqlFolder = Paths.get(TMP_FOLDER, "tmp");
         List<String> filesInSqlFolder = NIOFileUtils.list(sqlFolder.toString());
         Path database = Paths.get(sqlFolder.toString(), filesInSqlFolder.get(0));
-        message += "Import sql dump.<br/>";
-
+        messageList.add(new DumpMessage("Starting to import the uploaded SQL dump.", DumpMessageStatus.OK));
+        
         String myCommand = commandImport.replaceAll("DATABASE_USER", databaseUser);
         myCommand = myCommand.replaceAll("DATABASE_PASSWORD", databasePassword);
         myCommand = myCommand.replaceAll("DATABASE_NAME", databaseName);
@@ -121,77 +135,73 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
             Process runtimeProcess = Runtime.getRuntime().exec(myCommand);
             int processComplete = runtimeProcess.waitFor();
             if (processComplete == 0) {
-                message += "Created database dump.<br/>";
+                messageList.add(new DumpMessage("SQL dump successfully imported", DumpMessageStatus.OK));
             } else {
-                message += "Error during creation of database dump.";
+                messageList.add(new DumpMessage("Error during creation of database dump", DumpMessageStatus.ERROR));
                 return;
             }
-
-            message += "Sql dump imported.<br/>";
-
-            message += "Replacing metadata folder.<br/>";
-
-            message += "Delete old metadata folder.<br/>";
+            messageList.add(new DumpMessage("Start replacing metadata folders.", DumpMessageStatus.OK));
+            messageList.add(new DumpMessage("Delete old metadata folder.", DumpMessageStatus.OK));
             FileUtils.deleteDirectory(Paths.get(METADATA_FOLDER).toFile());
-            message += "Import new metadata folder.<br/>";
+            messageList.add(new DumpMessage("Old metadata folder deleted.", DumpMessageStatus.OK));
+            messageList.add(new DumpMessage("Start to import new metadata folder.", DumpMessageStatus.OK));
             Path tmpMetadataFolder = Paths.get(TMP_FOLDER, METADATA_FOLDER);
             Files.move(tmpMetadataFolder, Paths.get(METADATA_FOLDER));
-            message += "Finished import.<br/>";
-
+            messageList.add(new DumpMessage("Import successfully finished", DumpMessageStatus.OK));
         } catch (IOException | InterruptedException e) {
-            log.error(e);
+            log.error("Exception while importing data from zip file", e);
+            messageList.add(new DumpMessage("Exception while importing data from zip file: " + e.getMessage(), DumpMessageStatus.ERROR));
         }
     }
-
-    public void copyFile(String fileName, InputStream in) {
+    
+    /**
+     * internal method to do the file copying 
+     * @param fileName
+     * @param in
+     */
+    private void copyFile(String fileName, InputStream in) {
         OutputStream out = null;
-
         try {
             String extension = fileName.substring(fileName.indexOf("."));
-
             importFile = Files.createTempFile(fileName, extension);
             out = new FileOutputStream(importFile.toFile());
 
             int read = 0;
             byte[] bytes = new byte[1024];
-
             while ((read = in.read(bytes)) != -1) {
                 out.write(bytes, 0, read);
             }
             out.flush();
         } catch (IOException e) {
-            log.error(e);
+            log.error("IOException while copying the file " + fileName, e);
+            messageList.add(new DumpMessage("IOException while copying the file: " + e.getMessage(), DumpMessageStatus.ERROR));
         } finally {
             if (in != null) {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    log.error(e);
+                    log.error("Error while closing the InputStream", e);
+                    messageList.add(new DumpMessage("Error while closing the InputStream: " + e.getMessage(), DumpMessageStatus.ERROR));
                 }
             }
             if (out != null) {
                 try {
                     out.close();
                 } catch (IOException e) {
-                    log.error(e);
+                    log.error("Error while closing the OutputStream", e);
+                    messageList.add(new DumpMessage("Error while closing the OutputStream: " + e.getMessage(), DumpMessageStatus.ERROR));
                 }
             }
-
         }
-
     }
 
+    
+    /**
+     * public bean method to create the mysql dump and put all content into a zip for the download
+     */
     public void downloadDump() {
-
-        FacesContext facesContext = FacesContextHelper.getCurrentFacesContext();
-        HttpServletResponse response = (HttpServletResponse) facesContext.getExternalContext().getResponse();
-
-        message = "Creating database dump.<br/>";
-
         try {
-
-            Path database = Files.createTempFile("goobi", ".sql");
-            
+            Path database = Files.createTempFile("goobi", ".sql");            
             String myCommand = commandExport.replaceAll("DATABASE_USER", databaseUser);
             myCommand = myCommand.replaceAll("DATABASE_PASSWORD", databasePassword);
             myCommand = myCommand.replaceAll("DATABASE_NAME", databaseName);
@@ -200,28 +210,27 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
 //            String[] command = { "/bin/sh", "-c", "mysqldump -u" + databaseUser + " -p" + databasePassword + " " + databaseName + " > " + database
 //                    .toString() };
             
-            
+            messageList.add(new DumpMessage("Creating database dump.", DumpMessageStatus.OK));
             Process runtimeProcess = Runtime.getRuntime().exec(myCommand);
             int processComplete = runtimeProcess.waitFor();
             if (processComplete == 0) {
-                message += "Created database dump.<br/>";
+                messageList.add(new DumpMessage("Created SQL dump successfully", DumpMessageStatus.OK));
             } else {
-                message += "Error during creation of database dump.";
+                messageList.add(new DumpMessage("Error during creation of database dump", DumpMessageStatus.ERROR));
                 return;
             }
 
+            FacesContext facesContext = FacesContextHelper.getCurrentFacesContext();
+            HttpServletResponse response = (HttpServletResponse) facesContext.getExternalContext().getResponse();
             OutputStream out = response.getOutputStream();
-
             response.setContentType("application/zip");
             response.setHeader("Content-Disposition", "attachment;filename=\"goobidump.zip\"");
             ZipOutputStream zos = new ZipOutputStream(out);
 
-            message += "Add database dump to archive.<br/>";
-
+            messageList.add(new DumpMessage("Add database dump to archive", DumpMessageStatus.OK));
             addDirToArchive(zos, database, TMP_FOLDER);
 
-            message += "Add metadata folder to archive.<br/>";
-
+            messageList.add(new DumpMessage("Add metadata folder to archive", DumpMessageStatus.OK));
             Path srcDir = Paths.get(METADATA_FOLDER);
             addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
 
@@ -229,11 +238,19 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
             out.flush();
             facesContext.responseComplete();
         } catch (IOException | InterruptedException e) {
-            log.error(e);
+            log.error("Exception while executing the download preparation", e);
+            messageList.add(new DumpMessage("Exception while executing the download preparation: " + e.getMessage(), DumpMessageStatus.ERROR));
         }
-
     }
 
+    
+    /**
+     * private method to add content to zip file
+     * 
+     * @param zos
+     * @param srcFile
+     * @param parrentDirectoryName
+     */
     private void addDirToArchive(ZipOutputStream zos, Path srcFile, String parrentDirectoryName) {
 
         String zipEntryName = srcFile.toFile().getName();
@@ -242,8 +259,7 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         }
 
         if (Files.isDirectory(srcFile)) {
-
-            message += "Add folder " + zipEntryName + " to archive.<br/>";
+            messageList.add(new DumpMessage("Add folder " + zipEntryName + " to archive.", DumpMessageStatus.OK));
             for (Path file : NIOFileUtils.listFiles(srcFile.toString())) {
                 addDirToArchive(zos, file, zipEntryName);
                 continue;
@@ -252,7 +268,6 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
         } else {
             try {
                 // create byte buffer
-
                 byte[] buffer = new byte[1024];
                 FileInputStream fis = new FileInputStream(srcFile.toFile());
                 zos.putNextEntry(new ZipEntry(zipEntryName));
@@ -264,11 +279,11 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
 
                 // close the InputStream
                 fis.close();
-            } catch (IOException ioe) {
-                log.error(ioe);
+            } catch (IOException e) {
+                log.error("IOException happened while creating the zip file", e);
+                messageList.add(new DumpMessage("IOException happened while creating the zip file: " + e.getMessage(), DumpMessageStatus.ERROR));
             }
         }
-
     }
 
     @Override
