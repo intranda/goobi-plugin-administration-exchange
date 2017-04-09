@@ -1,0 +1,176 @@
+package de.intranda.goobi.plugins.dump;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.io.FileUtils;
+import org.primefaces.event.FileUploadEvent;
+
+import de.sub.goobi.helper.NIOFileUtils;
+import lombok.Data;
+import lombok.extern.log4j.Log4j;
+
+@Log4j
+@Data
+public class Importer {
+	
+//	private int numberAllFiles = 0;
+//	private int numberCurrentFile = 0;
+	private List<Message> messageList;
+	private Path importFile;
+	private boolean confirmation = false;
+	
+	private String command;
+	private String METADATA_FOLDER = "/opt/digiverso/goobi/metadata/";
+	private String SQL_DUMP_PATH = "/opt/digiverso/goobi/tmp/goobi.sql";
+	private String ZIP_SQL_DUMP_PATH = "/sql";
+	private String TMP_FOLDER = "/tmp";
+
+	public Importer(XMLConfiguration config) {
+		messageList = new ArrayList<Message>();
+		command = config.getString("commandImport", "/bin/sh/import.sh");
+		METADATA_FOLDER = config.getString("metadataFolder", "/opt/digiverso/goobi/metadata/");
+	}
+	
+	/**
+	 * public Eventhandler to allow a file upload
+	 * 
+	 * @param event
+	 */
+	public void uploadFile(FileUploadEvent event) {
+		try {
+			String filename = event.getFile().getFileName();
+			storeUploadedFile(filename, event.getFile().getInputstream());
+		} catch (IOException e) {
+			log.error("IOException while uploading the zip file", e);
+			messageList.add(
+					new Message("IOException while uploading the zip file: " + e.getMessage(), MessageStatus.ERROR));
+		}
+		// start the unzipping
+		unzipUploadedFile();
+	}
+	
+	/**
+	 * internal method to store the file that was uploaded
+	 * 
+	 * @param fileName
+	 * @param in
+	 */
+	private void storeUploadedFile(String fileName, InputStream in) {
+		OutputStream out = null;
+		try {
+			String extension = fileName.substring(fileName.indexOf("."));
+			importFile = Files.createTempFile(fileName, extension);
+			out = new FileOutputStream(importFile.toFile());
+
+			int read = 0;
+			byte[] bytes = new byte[1024];
+			while ((read = in.read(bytes)) != -1) {
+				out.write(bytes, 0, read);
+			}
+			out.flush();
+		} catch (IOException e) {
+			log.error("IOException while copying the file " + fileName, e);
+			messageList.add(new Message("IOException while copying the file: " + e.getMessage(), MessageStatus.ERROR));
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					log.error("Error while closing the InputStream", e);
+					messageList.add(
+							new Message("Error while closing the InputStream: " + e.getMessage(), MessageStatus.ERROR));
+				}
+			}
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					log.error("Error while closing the OutputStream", e);
+					messageList.add(new Message("Error while closing the OutputStream: " + e.getMessage(),
+							MessageStatus.ERROR));
+				}
+			}
+		}
+	}
+
+	/**
+	 * internal method for unzipping the content of an uploaded zip file
+	 */
+	private void unzipUploadedFile() {
+		try {
+			messageList.add(new Message("Starting to extract the uploaded ZIP file", MessageStatus.OK));
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(importFile.toFile()));
+			ZipEntry ze = zis.getNextEntry();
+
+			while (ze != null) {
+				String fileName = ze.getName();
+				Path newFile = Paths.get(TMP_FOLDER, fileName);
+
+				Files.createDirectories(newFile.getParent());
+
+				FileOutputStream fos = new FileOutputStream(newFile.toFile());
+				byte[] buffer = new byte[1024];
+
+				int len;
+				while ((len = zis.read(buffer)) > 0) {
+					fos.write(buffer, 0, len);
+				}
+
+				fos.close();
+				ze = zis.getNextEntry();
+			}
+
+			zis.closeEntry();
+			zis.close();
+
+			messageList.add(new Message("ZIP file successfully extracted.", MessageStatus.OK));
+		} catch (IOException e) {
+			log.error("IOException while unzipping the uploaded file", e);
+			messageList.add(
+					new Message("IOException while unzipping the uploaded: " + e.getMessage(), MessageStatus.ERROR));
+		}
+
+		Path sqlFolder = Paths.get(TMP_FOLDER, "tmp");
+		List<String> filesInSqlFolder = NIOFileUtils.list(sqlFolder.toString());
+		Path database = Paths.get(sqlFolder.toString(), filesInSqlFolder.get(0));
+		messageList.add(new Message("Starting to import the uploaded SQL dump.", MessageStatus.OK));
+		String myCommand = command.replaceAll("DATABASE_TEMPFILE", SQL_DUMP_PATH);
+		String[] commandArray = myCommand.split(", ");
+		
+		try {
+			Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
+			int processComplete = runtimeProcess.waitFor();
+			if (processComplete == 0) {
+				messageList.add(new Message("SQL dump successfully imported", MessageStatus.OK));
+			} else {
+				messageList.add(new Message("Error during creation of database dump", MessageStatus.ERROR));
+				return;
+			}
+			messageList.add(new Message("Start replacing metadata folders.", MessageStatus.OK));
+			messageList.add(new Message("Delete old metadata folder.", MessageStatus.OK));
+			FileUtils.deleteDirectory(Paths.get(METADATA_FOLDER).toFile());
+			messageList.add(new Message("Old metadata folder deleted.", MessageStatus.OK));
+			messageList.add(new Message("Start to import new metadata folder.", MessageStatus.OK));
+			Path tmpMetadataFolder = Paths.get(TMP_FOLDER, METADATA_FOLDER);
+			Files.move(tmpMetadataFolder, Paths.get(METADATA_FOLDER));
+			messageList.add(new Message("Import successfully finished", MessageStatus.OK));
+		} catch (IOException | InterruptedException e) {
+			log.error("Exception while importing data from zip file", e);
+			messageList.add(new Message("Exception while importing data from zip file: " + e.getMessage(),
+					MessageStatus.ERROR));
+		}
+	}
+	
+}

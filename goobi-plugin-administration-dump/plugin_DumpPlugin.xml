@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config_plugin>
 
-    <metadataFolder>/opt/digiverso/goobi/metadata/</metadataFolder>
-    
-	<commandExport>/bin/sh\, -c\, /usr/local/bin/mysqldump -u goobi -pgoobi goobi > DATABASE_TEMPFILE</commandExport>
-	<commandImport>/opt/digiverso/goobi/scripts/mysql_import.sh</commandImport>
-	
-	<!-- 
-	<commandImport>mysql -u DATABASE_USER -pDATABASE_PASSWORD DATABASE_NAME < DATABASE_TEMPFILE</commandImport>
-	-->
-	
+    <commandExport>/bin/sh\, -c\, /usr/local/bin/mysqldump -u goobi -pgoobi goobi &lt; DATABASE_TEMPFILE</commandExport>
+	<commandImport>/bin/sh\, -c\, /usr/local/bin/mysql -u goobi -pgoobi goobi &gt; DATABASE_TEMPFILE</commandImport>
 	
 </config_plugin>

@@ -40,48 +40,135 @@
 			    border: 0;
 			    padding: 0;
 			}
+			
+			.ui-widget-content {
+			    border: none;
+			}
+			
+			.ui-progressbar {
+    			background: white none repeat scroll 0 0;
+    			border: 1px solid #ccc;
+    		}
+    		
+    		.ui-progressbar .ui-progressbar-value {
+			    margin: 0;
+			}
+			
+			.ui-progressbar .ui-progressbar-label {
+			    width: auto;
+			    min-width: 0;
+			    display: table !important;
+			    color: black;
+			    background-color: white;
+			    font-size: 10px;
+			    font-weight: normal;
+			    height: 14px;
+			    line-height: 10px;
+			    margin-top: 2px;
+			    padding: 2px;
+			    right:10px;
+			}
+
 		</style>
         
-        <h:form prependId="false" enctype="multipart/form-data" id="fileupload" styleClass="form-horizontal form-bordered">
-            <h:panelGroup layout="block" styleClass="row" id="import">
-                <div class="col-sm-12">
-                    <div class="box box-color orange box-bordered">
-                        <div class="box-title" id="title">
-                            <h3>
-                                <i class="fa fa-plug"></i>
-                                <h:outputText value="#{msgs.uploadData}" />
-                            </h3>
-                        </div>
-                        <div class="box-content nopadding">
-                            <h:panelGroup id="file">
-                                <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.uploadFile}" id="upload" auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.selectFiles}" allowTypes="/(\.|\/)(zip)$/" />
-                            </h:panelGroup>
-                        </div>
-                    </div>
-                </div>
-            </h:panelGroup>
-        </h:form>
+        
+       	<div class="row">
+			<div class="col-sm-12">
+				<div class="box box-color box-bordered">
+					<div class="box-title">
+						<h3>
+							<i class="fa fa-plug"></i>
+							<h:outputText value="#{myPageTitle}" />
+						</h3>
+							<h:form>
+						<ul class="tabs">
+							<li class="#{NavigationForm.uiStatus.plugin_admin_dump ne 'tab2'?'active':''}">
+								<h:commandLink action="#{NavigationForm.Reload}" id="tab1"
+									value="#{msgs.plugin_admin_dump_download}">
+									<f:setPropertyActionListener
+										target="#{NavigationForm.uiStatus.plugin_admin_dump}" value="" />
+									
+								</h:commandLink>
+							</li>
+							<li class="#{NavigationForm.uiStatus.plugin_admin_dump eq 'tab2'?'active':''}">
+								<h:commandLink action="#{NavigationForm.Reload}" id="tab2"
+									value="#{msgs.plugin_admin_dump_upload}">
+									<f:setPropertyActionListener
+										target="#{NavigationForm.uiStatus.plugin_admin_dump}" value="tab2" />
+									
+								</h:commandLink>
+							</li>
+						</ul>
+							</h:form>
+					</div>
+					<div class="box-content">
 
-        <h:form id="downloadArea">
-			<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.messageList}" id="messagelist">
-				<span class="block"> 
-					<i class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : 'fa-exclamation-triangle font-red'}"></i>
-					<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : 'font-red'}"/> 
-				</span>
-			</ui:repeat>
-			
-			<h:outputText value="#{AdministrationForm.administrationPlugin.numberCurrentFile} / #{AdministrationForm.administrationPlugin.numberAllFiles} -> #{AdministrationForm.administrationPlugin.progress}" rendered="#{AdministrationForm.administrationPlugin.numberAllFiles > 0}"/>
-			
-			
-            <p:poll interval="2" update="downloadArea" />
+						<!-- tab 1 -->
+						<h:panelGroup id="mytab1" rendered="#{NavigationForm.uiStatus.plugin_admin_dump ne 'tab2'}">
 
-            <h:commandLink id="download" title="#{msgs.plugin_dump_downloadDump}" action="#{AdministrationForm.administrationPlugin.downloadFile}" 
-            	styleClass="btn btn-primary submitOnEnter pull-right font-size-s margin-bottom-most margin-top-10">
-                <h:outputText value="#{msgs.plugin_dump_downloadDump}" />
-            </h:commandLink>
+							<h:form id="downloadForm">
 
-        </h:form>
+								<div class="col-sm-6">
+								
+									<h:outputText value="#{msgs.plugin_dump_downloadExplaination}" styleClass="block"/>
+									
+									<h:commandLink title="#{msgs.plugin_dump_downloadCornfirmation}" action="#{NavigationForm.Reload}"
+										styleClass="btn font-size-s margin-top-most">
+										<i class="fa #{AdministrationForm.administrationPlugin.exporter.confirmation?'fa-check-square':'fa-square-o'} margin-right-5"/>
+										<h:outputText value="#{msgs.plugin_dump_downloadCornfirmation}" />
+										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.confirmation}" target="#{AdministrationForm.administrationPlugin.exporter.confirmation}"/>
+										<f:ajax render="downloadForm" execute="@form" />
+									</h:commandLink>
+									
+									<h:commandLink id="download" title="#{msgs.plugin_dump_downloadDump}"
+										action="#{AdministrationForm.administrationPlugin.exporter.startExport}"
+										styleClass="btn btn-blue submitOnEnter font-size-s margin-top-most pull-right"
+										rendered="#{AdministrationForm.administrationPlugin.exporter.confirmation}" >
+										<h:outputText value="#{msgs.plugin_dump_downloadDump}" />
+									</h:commandLink>
 
+									<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.exporter.numberAllFiles > 0}">
+										<p:progressBar displayOnly="true" styleClass="margin-top-most"
+											value="#{AdministrationForm.administrationPlugin.exporter.progress}" 
+											labelTemplate="#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}" />
+									</h:panelGroup>
+					                    
+									<p:poll interval="2" update="downloadForm" />
+								</div>
+
+								<div class="col-sm-6">
+									<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.exporter.messageList}" id="messagelist">
+										<span class="block"> <i
+											class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : 'fa-exclamation-triangle font-red'}"></i>
+											<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : 'font-red'}" />
+										</span>
+									</ui:repeat>
+								</div>
+
+							</h:form>
+
+						</h:panelGroup>
+
+						<!-- tab 2 -->
+						<h:panelGroup rendered="#{NavigationForm.uiStatus.plugin_admin_dump eq 'tab2'}">
+		
+							<h:form id="myform" styleClass="form-horizontal form-bordered" prependId="false" 
+								enctype="multipart/form-data" onkeypress="submitOnEnter(event);">
+		
+								<h:panelGroup id="file">
+	                                <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.importer.uploadFile}" id="upload" auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.plugin_dump_uploadDump}" allowTypes="/(\.|\/)(zip)$/" />
+	                            </h:panelGroup>
+		
+							</h:form>
+
+						</h:panelGroup>
+
+					</div>
+				</div>
+			</div>
+
+		</div>
+        
     </composite:implementation>
 
 </ui:composition>
