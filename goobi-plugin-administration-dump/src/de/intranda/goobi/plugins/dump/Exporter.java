@@ -31,15 +31,22 @@ public class Exporter {
 	private int numberAllFiles = 0;
 	private int numberCurrentFile = 0;
 	private List<Message> messageList;
+	
 	private boolean confirmation = false;
-
+	private boolean includeRulesets = false;
+	private boolean includeScripts = false;
+	private boolean includeConfiguration = false;
+	private boolean includeMetadata = false;
+	private boolean includeDockets = false;
+	private boolean includePlugins = false;
+	private boolean includeSQLdump = false;
+	
 	private String command;
 	private String SQL_DUMP_PATH = "/opt/digiverso/goobi/tmp/goobi.sql";
 	private String ZIP_SQL_DUMP_PATH = "/sql";
 
 	public Exporter(XMLConfiguration config) {
 		confirmation = false;
-		messageList = new ArrayList<Message>();
 		command = config.getString("commandExport", "/bin/sh/export.sh");
 	}
 
@@ -47,23 +54,11 @@ public class Exporter {
 	 * start the export of the entire selected content into a zip file for download
 	 */
 	public void startExport() {
+		messageList = new ArrayList<Message>();
 		try {
 			// create an SQL dump
-			messageList.add(new Message("Creating database dump.", MessageStatus.OK));
-			String myCommand = command.replaceAll("DATABASE_TEMPFILE", SQL_DUMP_PATH);
-			String[] commandArray = myCommand.split(", ");
-
-			Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
-			int processComplete = runtimeProcess.waitFor();
-
-			// check if SQL dump generation was successfull
-			if (processComplete == 0) {
-				messageList.add(new Message("Created SQL dump successfully", MessageStatus.OK));
-			} else {
-				messageList.add(new Message("Error during creation of database dump", MessageStatus.ERROR));
-				return;
-			}
-
+			messageList.add(new Message("Creating Goobi dump.", MessageStatus.OK));
+			
 			// prepare zip generation
 			FacesContext facesContext = FacesContextHelper.getCurrentFacesContext();
 			HttpServletResponse response = (HttpServletResponse) facesContext.getExternalContext().getResponse();
@@ -73,54 +68,55 @@ public class Exporter {
 			ZipOutputStream zos = new ZipOutputStream(out);
 
 			// add database into zip
-			messageList.add(new Message("Add database dump to archive", MessageStatus.OK));
-			Path sqlDump = Paths.get(SQL_DUMP_PATH);
-			addDirToArchive(zos, sqlDump, ZIP_SQL_DUMP_PATH);
+			if (includeSQLdump){
+				String myCommand = command.replaceAll("DATABASE_TEMPFILE", SQL_DUMP_PATH);
+				String[] commandArray = myCommand.split(", ");
 
+				Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
+				int processComplete = runtimeProcess.waitFor();
+
+				// check if SQL dump generation was successfull
+				if (processComplete == 0) {
+					messageList.add(new Message("Created SQL dump successfully.", MessageStatus.OK));
+				} else {
+					messageList.add(new Message("Error during creation of database dump.", MessageStatus.ERROR));
+					return;
+				}
+				messageList.add(new Message("Add database dump to archive.", MessageStatus.OK));
+				Path sqlDump = Paths.get(SQL_DUMP_PATH);
+				addDirToArchive(zos, sqlDump, ZIP_SQL_DUMP_PATH);
+			}
+			
 			// add all rulesets into zip
-			String rulesetfolder = ConfigurationHelper.getInstance().getRulesetFolder();
-			messageList.add(new Message("Add ruleset folder to archive", MessageStatus.OK));
-			numberAllFiles = DumpHelper.getFilesCount(new File(rulesetfolder));
-			numberCurrentFile = 0;
-			Path srcDir = Paths.get(rulesetfolder);
-			addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
-			
+			if (includeRulesets){
+				addFolder(zos, ConfigurationHelper.getInstance().getRulesetFolder());
+			}
 			// add all configurations into zip
-			String configfolder = ConfigurationHelper.getInstance().getConfigurationFolder();
-			messageList.add(new Message("Add configuration folder to archive", MessageStatus.OK));
-			numberAllFiles = DumpHelper.getFilesCount(new File(configfolder));
-			numberCurrentFile = 0;
-			srcDir = Paths.get(configfolder);
-			addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
-			
+			if (includeConfiguration){
+				addFolder(zos, ConfigurationHelper.getInstance().getConfigurationFolder());
+			}
 			// add all scripts into zip
-			String scriptfolder = ConfigurationHelper.getInstance().getScriptsFolder();
-			messageList.add(new Message("Add scripts folder to archive", MessageStatus.OK));
-			numberAllFiles = DumpHelper.getFilesCount(new File(scriptfolder));
-			numberCurrentFile = 0;
-			srcDir = Paths.get(scriptfolder);
-			addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
-			
+			if (includeScripts){
+				addFolder(zos, ConfigurationHelper.getInstance().getScriptsFolder());
+			}
 			// add all dockets into zip
-			String xsltfolder = ConfigurationHelper.getInstance().getXsltFolder();
-			messageList.add(new Message("Add dockets folder to archive", MessageStatus.OK));
-			numberAllFiles = DumpHelper.getFilesCount(new File(xsltfolder));
-			numberCurrentFile = 0;
-			srcDir = Paths.get(rulesetfolder);
-			addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
-						
+			if (includeDockets){
+				addFolder(zos, ConfigurationHelper.getInstance().getXsltFolder());
+			}
+			// add all plugins into zip
+			if (includePlugins){
+				addFolder(zos, ConfigurationHelper.getInstance().getPluginFolder());
+			}
 			// add all metadata content into zip
-			String metafolder = ConfigurationHelper.getInstance().getMetadataFolder();
-			messageList.add(new Message("Add metadata folder to archive", MessageStatus.OK));
-			numberAllFiles = DumpHelper.getFilesCount(new File(metafolder));
-			numberCurrentFile = 0;
-			srcDir = Paths.get(metafolder);
-			addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
-
+			if (includeMetadata){
+				addFolder(zos, ConfigurationHelper.getInstance().getMetadataFolder());
+			}
+			
 			// close all connections and streams
 			zos.close();
 			out.flush();
 			facesContext.responseComplete();
+			messageList.add(new Message("Entire Goobi dump export finished successfully.", MessageStatus.OK));
 		} catch (IOException | InterruptedException e) {
 			log.error("Exception while executing the download preparation", e);
 			messageList.add(new Message("Exception while executing the download preparation: " + e.getMessage(),
@@ -128,6 +124,13 @@ public class Exporter {
 		}
 	}
 
+	private void addFolder(ZipOutputStream zos, String inFolder) throws IOException, InterruptedException {
+		numberAllFiles = DumpHelper.getFilesCount(new File(inFolder));
+		numberCurrentFile = 0;
+		Path srcDir = Paths.get(inFolder);
+		addDirToArchive(zos, srcDir, "/opt/digiverso/goobi");
+	}
+	
 	/**
 	 * private method to add content to zip file
 	 * 
