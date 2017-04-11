@@ -284,7 +284,9 @@
 									</h:commandLink>
 		
 									<h:panelGroup id="file" rendered="#{AdministrationForm.administrationPlugin.importer.confirmation}">
-		                                <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.importer.uploadFile}" id="upload" auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.plugin_dump_uploadDump}" allowTypes="/(\.|\/)(zip)$/" />
+		                                <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.importer.uploadFile}" id="upload" 
+		                                	auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.plugin_dump_uploadDump}" 
+		                                	sizeLimit="1000000000000" allowTypes="/(\.|\/)(zip)$/" />
 		                            </h:panelGroup>
 
 								</h:form>
