@@ -305,12 +305,16 @@
 							</div>
 							
 							<div class="col-sm-6">
-								<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.importer.messageList}" id="messagelist">
-									<span class="block"> <i
-										class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : 'fa-exclamation-triangle font-red'}"></i>
-										<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : 'font-red'}" />
-									</span>
-								</ui:repeat>
+								<h:form id="uploadMessagesForm">
+									<p:poll interval="2" update="uploadMessagesForm" />
+								
+									<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.importer.messageList}" id="messagelist">
+										<span class="block"> <i
+											class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : 'fa-exclamation-triangle font-red'}"></i>
+											<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : 'font-red'}" />
+										</span>
+									</ui:repeat>
+								</h:form>
 							</div>
 							
 

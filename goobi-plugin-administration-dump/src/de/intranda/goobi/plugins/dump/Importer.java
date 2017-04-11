@@ -1,6 +1,7 @@
 package de.intranda.goobi.plugins.dump;
 
 import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,14 +9,18 @@ import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -45,7 +50,7 @@ public class Importer {
 	private boolean includeSQLdump = false;
 	
 	private String command;
-	private String TMP_FOLDER = "/opt/digiverso/goobi/tmp/";
+	private String TMP_FOLDER = "/opt/digiverso/goobi/tmp/dump";
 
 	public Importer(XMLConfiguration config) {
 		messageList = new ArrayList<Message>();
@@ -132,67 +137,53 @@ public class Importer {
 	/**
 	 * internal method for unzipping the content of an uploaded zip file
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void unzipUploadedFile() throws IOException{
-		messageList.add(new Message("Starting to extract the uploaded ZIP file", MessageStatus.OK));
-//		ZipInputStream zis = new ZipInputStream(new FileInputStream(importFile.toFile()));
-//		ZipEntry ze = zis.getNextEntry();
-//		while (ze != null) {
-//			String fileName = ze.getName();
-//			Path newFile = Paths.get(TMP_FOLDER, fileName);
-//			try{
-//				Files.createDirectories(newFile.getParent());
-//			}catch(FileAlreadyExistsException e){
-//				log.info("Folder does exist already and does not get created again: " + newFile.getParent());
-//			}
-//			FileOutputStream fos = new FileOutputStream(newFile.toFile());
-//			byte[] buffer = new byte[1024];
-//			int len;
-//			while ((len = zis.read(buffer)) > 0) {
-//				fos.write(buffer, 0, len);
-//			}
-//			fos.close();
-//			ze = zis.getNextEntry();
-//		}
-//		zis.closeEntry();
-//		zis.close();
+		messageList.add(new Message("Starting to extract the uploaded ZIP file into " + TMP_FOLDER, MessageStatus.OK));
 		
+		Path temp = Paths.get(TMP_FOLDER);
+		if (temp.toFile().exists()){
+			messageList.add(new Message("Cleanup temp folder " + TMP_FOLDER + " first.", MessageStatus.OK));
+			NIOFileUtils.deleteDir(temp);
+		}
 		
-	
-		// Open the file
-		ZipFile file = new ZipFile(importFile.toFile());
-		FileSystem fileSystem = FileSystems.getDefault();
-		Enumeration<? extends ZipEntry> entries = file.entries();
-		numberAllFiles = file.size();
-		numberCurrentFile = 0;
-		
-		// Iterate over entries
-		while (entries.hasMoreElements()) {
-			numberCurrentFile++;
-			ZipEntry entry = entries.nextElement();
-			// If directory then create a new directory in uncompressed folder
-			if (entry.isDirectory()) {
-				messageList.add(new Message("Creating Directory:" + TMP_FOLDER + entry.getName(), MessageStatus.OK));
-				Files.createDirectories(fileSystem.getPath(TMP_FOLDER + entry.getName()));
-			}
-			// Else create the file
-			else {
-				InputStream is = file.getInputStream(entry);
-				BufferedInputStream bis = new BufferedInputStream(is);
-				String uncompressedFileName = TMP_FOLDER + entry.getName();
-				Path uncompressedFilePath = fileSystem.getPath(uncompressedFileName);
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(importFile.toFile()));
+		ZipEntry ze = zis.getNextEntry();
+		while (ze != null) {
+			String fileName = ze.getName();
+			Path newFile = Paths.get(TMP_FOLDER, fileName);
+			
+			if (ze.isDirectory()) {
+				messageList.add(new Message("Creating directory:" + ze.getName(), MessageStatus.OK));
+				Files.createDirectories(newFile);
+			} else{
+			
 				try{
-					Files.createFile(uncompressedFilePath);
+					if (!newFile.getParent().toFile().exists()){
+						Files.createDirectories(newFile.getParent());
+						messageList.add(new Message("Creating parent directory:" + newFile.getParent(), MessageStatus.OK));
+					}
+				}catch(FileAlreadyExistsException e){
+					log.info("Folder does exist already and does not get created again: " + newFile.getParent());
+				}
+				try{
+					Files.createFile(newFile);
 				}catch (FileAlreadyExistsException e){
-					messageList.add(new Message("File exists already and does not get created again:" + entry.getName(), MessageStatus.OK));
+					//messageList.add(new Message("File exists already and does not get created again:" + ze.getName(), MessageStatus.OK));
 				}
-				FileOutputStream fileOutput = new FileOutputStream(uncompressedFileName);
-				while (bis.available() > 0) {
-					fileOutput.write(bis.read());
+				
+				FileOutputStream fos = new FileOutputStream(newFile.toFile());
+				byte[] buffer = new byte[1024];
+				int len;
+				while ((len = zis.read(buffer)) > 0) {
+					fos.write(buffer, 0, len);
 				}
-				fileOutput.close();
-				messageList.add(new Message("Written :" + entry.getName(), MessageStatus.OK));
+				fos.close();
+				ze = zis.getNextEntry();
 			}
 		}
+		zis.closeEntry();
+		zis.close();
 		messageList.add(new Message("ZIP file successfully extracted.", MessageStatus.OK));
 	}
 	
