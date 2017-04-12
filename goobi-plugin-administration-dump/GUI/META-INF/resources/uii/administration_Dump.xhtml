@@ -74,261 +74,263 @@
 
 		</style>
         
+        <h:outputText styleClass="alert alert-danger block margin-top-most" value="#{msgs.noAccessAllowed} Plugin_Goobi_Dump" rendered="#{!LoginForm.hasRole('Plugin_Goobi_Dump')}"/>
         
-       	<div class="row">
-			<div class="col-sm-12">
-				<div class="box box-color box-bordered">
-					<div class="box-title">
-						<h3>
-							<i class="fa fa-plug"></i>
-							<h:outputText value="#{myPageTitle}" />
-						</h3>
-							<h:form>
-						<ul class="tabs">
-							<li class="#{NavigationForm.uiStatus.plugin_admin_dump ne 'tab2'?'active':''}">
-								<h:commandLink action="#{NavigationForm.Reload}" id="tab1"
-									value="#{msgs.plugin_admin_dump_download}">
-									<f:setPropertyActionListener
-										target="#{NavigationForm.uiStatus.plugin_admin_dump}" value="" />
-									
-								</h:commandLink>
-							</li>
-							<li class="#{NavigationForm.uiStatus.plugin_admin_dump eq 'tab2'?'active':''}">
-								<h:commandLink action="#{NavigationForm.Reload}" id="tab2"
-									value="#{msgs.plugin_admin_dump_upload}">
-									<f:setPropertyActionListener
-										target="#{NavigationForm.uiStatus.plugin_admin_dump}" value="tab2" />
-									
-								</h:commandLink>
-							</li>
-						</ul>
-							</h:form>
-					</div>
-					<div class="box-content">
-
-						<!-- tab 1 -->
-						<h:panelGroup id="mytab1" rendered="#{NavigationForm.uiStatus.plugin_admin_dump ne 'tab2'}">
-
-							<h:form id="downloadForm">
-
-								<div class="col-sm-6">
-								
-									<h:outputText styleClass="alert alert-warning block" value="#{msgs.plugin_dump_downloadExplaination}" />
-								
-									<h:commandLink title="#{msgs.plugin_dump_includeSQLdump}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeSQLdump?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeSQLdump}" target="#{AdministrationForm.administrationPlugin.exporter.includeSQLdump}"/>
-										<f:ajax render="downloadForm" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_includeSQLdump}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_includeRulesets}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeRulesets?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeRulesets}" target="#{AdministrationForm.administrationPlugin.exporter.includeRulesets}"/>
-										<f:ajax render="downloadForm" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_includeRulesets}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_includeDockets}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeDockets?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeDockets}" target="#{AdministrationForm.administrationPlugin.exporter.includeDockets}"/>
-										<f:ajax render="downloadForm" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_includeDockets}" styleClass="font-black"/>
-									</h:commandLink><br/>
-																		
-									<h:commandLink title="#{msgs.plugin_dump_includeScripts}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeScripts?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeScripts}" target="#{AdministrationForm.administrationPlugin.exporter.includeScripts}"/>
-										<f:ajax render="downloadForm" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_includeScripts}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_includeConfiguration}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeConfiguration?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeConfiguration}" target="#{AdministrationForm.administrationPlugin.exporter.includeConfiguration}"/>
-										<f:ajax render="downloadForm" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_includeConfiguration}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_includePlugins}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.exporter.includePlugins?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includePlugins}" target="#{AdministrationForm.administrationPlugin.exporter.includePlugins}"/>
-										<f:ajax render="downloadForm" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_includePlugins}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_includeMetadata}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeMetadata?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeMetadata}" target="#{AdministrationForm.administrationPlugin.exporter.includeMetadata}"/>
-										<f:ajax render="downloadForm" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_includeMetadata}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_downloadConfirmation}" action="#{NavigationForm.Reload}"
-										styleClass="btn font-size-s margin-top-most">
-										<i class="fa #{AdministrationForm.administrationPlugin.exporter.confirmation?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<h:outputText value="#{msgs.plugin_dump_downloadConfirmation}" />
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.confirmation}" target="#{AdministrationForm.administrationPlugin.exporter.confirmation}"/>
-										<f:ajax render="downloadForm" execute="@form" />
-									</h:commandLink>
-									
-									<h:commandLink id="download" title="#{msgs.plugin_dump_downloadDump}"
-										action="#{AdministrationForm.administrationPlugin.exporter.startExport}"
-										styleClass="btn btn-blue submitOnEnter font-size-s margin-top-most pull-right"
-										rendered="#{AdministrationForm.administrationPlugin.exporter.confirmation}" >
-										<h:outputText value="#{msgs.plugin_dump_downloadDump}" />
-									</h:commandLink>
-
-									<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.exporter.numberAllFiles > 0}">
-										<div class="progress margin-top-most" title="#{AdministrationForm.administrationPlugin.exporter.progress}%" style="height:22px;border:1px solid #ccc;">
-											<div title="#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}" data-toggle="tooltip" class="progress-bar" style="background-color:#368ee0;height:100%;margin-top: 0px; width:#{AdministrationForm.administrationPlugin.exporter.progress}%">
-											#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}
-											</div>
-										</div>
-									</h:panelGroup>
-					                    
-									<p:poll interval="2" update="downloadForm" />
-								</div>
-
-								<div class="col-sm-6">
-									<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.exporter.messageList}" id="messagelist">
-										<span class="block"> <i
-											class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : item.status == 'WARNING'?'fa-exclamation-triangle font-orange':'fa-exclamation-triangle font-red'}"></i>
-											<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : item.status == 'WARNING'?'font-orange':'font-red'}" />
-										</span>
-									</ui:repeat>
-								</div>
-
-							</h:form>
-
-						</h:panelGroup>
-
-						<!-- tab 2 -->
-						<h:panelGroup rendered="#{NavigationForm.uiStatus.plugin_admin_dump eq 'tab2'}">
-		
-							<div class="col-sm-6">
-
-								<h:outputText styleClass="alert alert-danger block" value="#{msgs.plugin_dump_uploadExplaination}" />
+        <h:panelGroup rendered="#{LoginForm.hasRole('Plugin_Goobi_Dump')}">
+           	<div class="row">
+				<div class="col-sm-12">
+					<div class="box box-color box-bordered">
+						<div class="box-title">
+							<h3>
+								<i class="fa fa-plug"></i>
+								<h:outputText value="#{myPageTitle}" />
+							</h3>
+								<h:form>
+							<ul class="tabs">
+								<li class="#{NavigationForm.uiStatus.plugin_admin_dump ne 'tab2'?'active':''}">
+									<h:commandLink action="#{NavigationForm.Reload}" id="tab1"
+										value="#{msgs.plugin_admin_dump_download}">
+										<f:setPropertyActionListener
+											target="#{NavigationForm.uiStatus.plugin_admin_dump}" value="" />
 										
-								<h:form id="myform" styleClass="form-horizontal form-bordered" prependId="false" 
-									enctype="multipart/form-data">
-								
-									<h:commandLink title="#{msgs.plugin_dump_replaceSQLdump}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.importer.includeSQLdump?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeSQLdump}" target="#{AdministrationForm.administrationPlugin.importer.includeSQLdump}"/>
-										<f:ajax render="myform" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_replaceSQLdump}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_replaceRulesets}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.importer.includeRulesets?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeRulesets}" target="#{AdministrationForm.administrationPlugin.importer.includeRulesets}"/>
-										<f:ajax render="myform" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_replaceRulesets}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_replaceDockets}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.importer.includeDockets?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeDockets}" target="#{AdministrationForm.administrationPlugin.importer.includeDockets}"/>
-										<f:ajax render="myform" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_replaceDockets}" styleClass="font-black"/>
-									</h:commandLink><br/>
-																		
-									<h:commandLink title="#{msgs.plugin_dump_replaceScripts}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.importer.includeScripts?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeScripts}" target="#{AdministrationForm.administrationPlugin.importer.includeScripts}"/>
-										<f:ajax render="myform" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_replaceScripts}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_replaceConfiguration}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.importer.includeConfiguration?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeConfiguration}" target="#{AdministrationForm.administrationPlugin.importer.includeConfiguration}"/>
-										<f:ajax render="myform" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_replaceConfiguration}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_replacePlugins}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.importer.includePlugins?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includePlugins}" target="#{AdministrationForm.administrationPlugin.importer.includePlugins}"/>
-										<f:ajax render="myform" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_replacePlugins}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_replaceMetadata}" action="#{NavigationForm.Reload}"
-										styleClass="margin-left-5">
-										<i class="fa #{AdministrationForm.administrationPlugin.importer.includeMetadata?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeMetadata}" target="#{AdministrationForm.administrationPlugin.importer.includeMetadata}"/>
-										<f:ajax render="myform" execute="@form" />
-										<h:outputText value="#{msgs.plugin_dump_replaceMetadata}" styleClass="font-black"/>
-									</h:commandLink><br/>
-									
-									<h:commandLink title="#{msgs.plugin_dump_uploadConfirmation}" action="#{NavigationForm.Reload}"
-										styleClass="btn btn-red font-size-s margin-top-most">
-										<i class="fa #{AdministrationForm.administrationPlugin.importer.confirmation?'fa-check-square':'fa-square-o'} margin-right-5"/>
-										<h:outputText value="#{msgs.plugin_dump_uploadConfirmation}" />
-										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.confirmation}" target="#{AdministrationForm.administrationPlugin.importer.confirmation}"/>
-										<f:ajax render="myform" execute="@form" />
 									</h:commandLink>
-		
-									<h:panelGroup id="file" rendered="#{AdministrationForm.administrationPlugin.importer.confirmation}">
-		                                <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.importer.uploadFile}" id="upload" 
-		                                	auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.plugin_dump_uploadDump}" 
-		                                	sizeLimit="1000000000000" allowTypes="/(\.|\/)(zip)$/" />
-		                            </h:panelGroup>
-
+								</li>
+								<li class="#{NavigationForm.uiStatus.plugin_admin_dump eq 'tab2'?'active':''}">
+									<h:commandLink action="#{NavigationForm.Reload}" id="tab2"
+										value="#{msgs.plugin_admin_dump_upload}">
+										<f:setPropertyActionListener
+											target="#{NavigationForm.uiStatus.plugin_admin_dump}" value="tab2" />
+										
+									</h:commandLink>
+								</li>
+							</ul>
 								</h:form>
-
-								<h:form id="progressform">
-									<h:panelGroup id="myprogress" rendered="#{AdministrationForm.administrationPlugin.importer.numberAllFiles > 0}">
-										<div class="progress margin-top-most" title="#{AdministrationForm.administrationPlugin.importer.progress}%" style="height:22px;border:1px solid #ccc;">
-											<div title="#{AdministrationForm.administrationPlugin.importer.numberCurrentFile} / #{AdministrationForm.administrationPlugin.importer.numberAllFiles}" data-toggle="tooltip" class="progress-bar" style="background-color:#368ee0;height:100%;margin-top: 0px; width:#{AdministrationForm.administrationPlugin.importer.progress}%">
-											#{AdministrationForm.administrationPlugin.importer.numberCurrentFile} / #{AdministrationForm.administrationPlugin.importer.numberAllFiles}
-											</div>
-										</div>
-									</h:panelGroup>
+						</div>
+						<div class="box-content">
+	
+							<!-- tab 1 -->
+							<h:panelGroup id="mytab1" rendered="#{NavigationForm.uiStatus.plugin_admin_dump ne 'tab2'}">
+	
+								<h:form id="downloadForm">
+	
+									<div class="col-sm-6">
 									
-									<p:poll interval="2" update="progressform" />
-								
+										<h:outputText styleClass="alert alert-warning block" value="#{msgs.plugin_dump_downloadExplaination}" />
+									
+										<h:commandLink title="#{msgs.plugin_dump_includeSQLdump}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeSQLdump?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeSQLdump}" target="#{AdministrationForm.administrationPlugin.exporter.includeSQLdump}"/>
+											<f:ajax render="downloadForm" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_includeSQLdump}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_includeRulesets}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeRulesets?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeRulesets}" target="#{AdministrationForm.administrationPlugin.exporter.includeRulesets}"/>
+											<f:ajax render="downloadForm" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_includeRulesets}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_includeDockets}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeDockets?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeDockets}" target="#{AdministrationForm.administrationPlugin.exporter.includeDockets}"/>
+											<f:ajax render="downloadForm" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_includeDockets}" styleClass="font-black"/>
+										</h:commandLink><br/>
+																			
+										<h:commandLink title="#{msgs.plugin_dump_includeScripts}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeScripts?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeScripts}" target="#{AdministrationForm.administrationPlugin.exporter.includeScripts}"/>
+											<f:ajax render="downloadForm" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_includeScripts}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_includeConfiguration}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeConfiguration?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeConfiguration}" target="#{AdministrationForm.administrationPlugin.exporter.includeConfiguration}"/>
+											<f:ajax render="downloadForm" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_includeConfiguration}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_includePlugins}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.exporter.includePlugins?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includePlugins}" target="#{AdministrationForm.administrationPlugin.exporter.includePlugins}"/>
+											<f:ajax render="downloadForm" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_includePlugins}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_includeMetadata}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeMetadata?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeMetadata}" target="#{AdministrationForm.administrationPlugin.exporter.includeMetadata}"/>
+											<f:ajax render="downloadForm" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_includeMetadata}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_downloadConfirmation}" action="#{NavigationForm.Reload}"
+											styleClass="btn font-size-s margin-top-most">
+											<i class="fa #{AdministrationForm.administrationPlugin.exporter.confirmation?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<h:outputText value="#{msgs.plugin_dump_downloadConfirmation}" />
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.confirmation}" target="#{AdministrationForm.administrationPlugin.exporter.confirmation}"/>
+											<f:ajax render="downloadForm" execute="@form" />
+										</h:commandLink>
+										
+										<h:commandLink id="download" title="#{msgs.plugin_dump_downloadDump}"
+											action="#{AdministrationForm.administrationPlugin.exporter.startExport}"
+											styleClass="btn btn-blue submitOnEnter font-size-s margin-top-most pull-right"
+											rendered="#{AdministrationForm.administrationPlugin.exporter.confirmation}" >
+											<h:outputText value="#{msgs.plugin_dump_downloadDump}" />
+										</h:commandLink>
+	
+										<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.exporter.numberAllFiles > 0}">
+											<div class="progress margin-top-most" title="#{AdministrationForm.administrationPlugin.exporter.progress}%" style="height:22px;border:1px solid #ccc;">
+												<div title="#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}" data-toggle="tooltip" class="progress-bar" style="background-color:#368ee0;height:100%;margin-top: 0px; width:#{AdministrationForm.administrationPlugin.exporter.progress}%">
+												#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}
+												</div>
+											</div>
+										</h:panelGroup>
+						                    
+										<p:poll interval="2" update="downloadForm" />
+									</div>
+	
+									<div class="col-sm-6">
+										<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.exporter.messageList}" id="messagelist">
+											<span class="block"> <i
+												class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : item.status == 'WARNING'?'fa-exclamation-triangle font-orange':'fa-exclamation-triangle font-red'}"></i>
+												<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : item.status == 'WARNING'?'font-orange':'font-red'}" />
+											</span>
+										</ui:repeat>
+									</div>
+	
 								</h:form>
+	
+							</h:panelGroup>
+	
+							<!-- tab 2 -->
+							<h:panelGroup rendered="#{NavigationForm.uiStatus.plugin_admin_dump eq 'tab2'}">
+			
+								<div class="col-sm-6">
+	
+									<h:outputText styleClass="alert alert-danger block" value="#{msgs.plugin_dump_uploadExplaination}" />
+											
+									<h:form id="myform" styleClass="form-horizontal form-bordered" prependId="false" 
+										enctype="multipart/form-data">
+									
+										<h:commandLink title="#{msgs.plugin_dump_replaceSQLdump}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.importer.includeSQLdump?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeSQLdump}" target="#{AdministrationForm.administrationPlugin.importer.includeSQLdump}"/>
+											<f:ajax render="myform" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_replaceSQLdump}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_replaceRulesets}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.importer.includeRulesets?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeRulesets}" target="#{AdministrationForm.administrationPlugin.importer.includeRulesets}"/>
+											<f:ajax render="myform" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_replaceRulesets}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_replaceDockets}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.importer.includeDockets?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeDockets}" target="#{AdministrationForm.administrationPlugin.importer.includeDockets}"/>
+											<f:ajax render="myform" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_replaceDockets}" styleClass="font-black"/>
+										</h:commandLink><br/>
+																			
+										<h:commandLink title="#{msgs.plugin_dump_replaceScripts}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.importer.includeScripts?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeScripts}" target="#{AdministrationForm.administrationPlugin.importer.includeScripts}"/>
+											<f:ajax render="myform" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_replaceScripts}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_replaceConfiguration}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.importer.includeConfiguration?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeConfiguration}" target="#{AdministrationForm.administrationPlugin.importer.includeConfiguration}"/>
+											<f:ajax render="myform" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_replaceConfiguration}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_replacePlugins}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.importer.includePlugins?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includePlugins}" target="#{AdministrationForm.administrationPlugin.importer.includePlugins}"/>
+											<f:ajax render="myform" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_replacePlugins}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_replaceMetadata}" action="#{NavigationForm.Reload}"
+											styleClass="margin-left-5">
+											<i class="fa #{AdministrationForm.administrationPlugin.importer.includeMetadata?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeMetadata}" target="#{AdministrationForm.administrationPlugin.importer.includeMetadata}"/>
+											<f:ajax render="myform" execute="@form" />
+											<h:outputText value="#{msgs.plugin_dump_replaceMetadata}" styleClass="font-black"/>
+										</h:commandLink><br/>
+										
+										<h:commandLink title="#{msgs.plugin_dump_uploadConfirmation}" action="#{NavigationForm.Reload}"
+											styleClass="btn btn-red font-size-s margin-top-most">
+											<i class="fa #{AdministrationForm.administrationPlugin.importer.confirmation?'fa-check-square':'fa-square-o'} margin-right-5"/>
+											<h:outputText value="#{msgs.plugin_dump_uploadConfirmation}" />
+											<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.confirmation}" target="#{AdministrationForm.administrationPlugin.importer.confirmation}"/>
+											<f:ajax render="myform" execute="@form" />
+										</h:commandLink>
+			
+										<h:panelGroup id="file" rendered="#{AdministrationForm.administrationPlugin.importer.confirmation}">
+			                                <p:fileUpload fileUploadListener="#{AdministrationForm.administrationPlugin.importer.uploadFile}" id="upload" 
+			                                	auto="true" style="text-align:center;" mode="advanced" multiple="false" dragDropSupport="true" label="#{msgs.plugin_dump_uploadDump}" 
+			                                	sizeLimit="1000000000000" allowTypes="/(\.|\/)(zip)$/" />
+			                            </h:panelGroup>
+	
+									</h:form>
+	
+									<h:form id="progressform">
+										<h:panelGroup id="myprogress" rendered="#{AdministrationForm.administrationPlugin.importer.numberAllFiles > 0}">
+											<div class="progress margin-top-most" title="#{AdministrationForm.administrationPlugin.importer.progress}%" style="height:22px;border:1px solid #ccc;">
+												<div title="#{AdministrationForm.administrationPlugin.importer.numberCurrentFile} / #{AdministrationForm.administrationPlugin.importer.numberAllFiles}" data-toggle="tooltip" class="progress-bar" style="background-color:#368ee0;height:100%;margin-top: 0px; width:#{AdministrationForm.administrationPlugin.importer.progress}%">
+												#{AdministrationForm.administrationPlugin.importer.numberCurrentFile} / #{AdministrationForm.administrationPlugin.importer.numberAllFiles}
+												</div>
+											</div>
+										</h:panelGroup>
+										
+										<p:poll interval="2" update="progressform" />
+									
+									</h:form>
+									
+								</div>
 								
-							</div>
-							
-							<div class="col-sm-6">
-								<h:form id="uploadMessagesForm">
-									<p:poll interval="2" update="uploadMessagesForm" />
+								<div class="col-sm-6">
+									<h:form id="uploadMessagesForm">
+										<p:poll interval="2" update="uploadMessagesForm" />
+									
+										<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.importer.messageList}" id="messagelist">
+											<span class="block"> <i
+												class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : item.status == 'WARNING'?'fa-exclamation-triangle font-orange':'fa-exclamation-triangle font-red'}"></i>
+												<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : item.status == 'WARNING'?'font-orange':'font-red'}" />
+											</span>
+										</ui:repeat>
+									</h:form>
+								</div>
 								
-									<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.importer.messageList}" id="messagelist">
-										<span class="block"> <i
-											class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : item.status == 'WARNING'?'fa-exclamation-triangle font-orange':'fa-exclamation-triangle font-red'}"></i>
-											<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : item.status == 'WARNING'?'font-orange':'font-red'}" />
-										</span>
-									</ui:repeat>
-								</h:form>
-							</div>
-							
-
-						</h:panelGroup>
-
+	
+							</h:panelGroup>
+	
+						</div>
 					</div>
 				</div>
+	
 			</div>
-
-		</div>
-        
+        </h:panelGroup>
     </composite:implementation>
 
 </ui:composition>
