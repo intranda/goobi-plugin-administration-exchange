@@ -153,6 +153,7 @@ public class Exporter {
 
 		} else {
 			numberCurrentFile++;
+			// messageList.add(new Message("Add file " + zipEntryName + " to archive. Also know as: " + srcFile.toString(), MessageStatus.OK));
 			// create byte buffer
 			byte[] buffer = new byte[1024];
 			FileInputStream fis = new FileInputStream(srcFile.toFile());
