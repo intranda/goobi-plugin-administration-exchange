@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.configuration.XMLConfiguration;
@@ -79,7 +80,7 @@ public class Importer {
 		}
 		
 		// start to replace the goobi content with the content of the uploaded unzipped file 
-//		replaceContent();
+		replaceContent();
 	}
 	
 	/**
@@ -139,6 +140,12 @@ public class Importer {
 			NIOFileUtils.deleteDir(temp);
 		}
 		
+		//count the content
+		ZipFile zipfile = new ZipFile(importFile.toFile());
+		numberAllFiles = zipfile.size();
+		numberCurrentFile = 0;
+		zipfile.close();
+				
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(importFile.toFile()));
 		ZipEntry ze = zis.getNextEntry();
 		while (ze != null) {
@@ -149,7 +156,7 @@ public class Importer {
 				messageList.add(new Message("Creating directory:" + ze.getName(), MessageStatus.OK));
 				Files.createDirectories(newFile);
 			} else{
-			
+				numberCurrentFile++;
 				try{
 					if (!newFile.getParent().toFile().exists()){
 						Files.createDirectories(newFile.getParent());
@@ -183,35 +190,70 @@ public class Importer {
 	 * internal method to replace the Goobi content with new content from the unzipped file
 	 */
 	private void replaceContent(){
-		Path sqlFolder = Paths.get(TMP_FOLDER, "sql");
-		List<String> filesInSqlFolder = NIOFileUtils.list(sqlFolder.toString());
-		Path database = Paths.get(sqlFolder.toString(), filesInSqlFolder.get(0));
-		messageList.add(new Message("Starting to import the uploaded SQL dump.", MessageStatus.OK));
-		String myCommand = command.replaceAll("DATABASE_TEMPFILE", TMP_FOLDER + "/sql/goobi.sql");
-		String[] commandArray = myCommand.split(", ");
+		messageList.add(new Message("Starting to replace existing content in Goobi.", MessageStatus.OK));
 		
 		try {
-			Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
-			int processComplete = runtimeProcess.waitFor();
-			if (processComplete == 0) {
-				messageList.add(new Message("SQL dump successfully imported", MessageStatus.OK));
-			} else {
-				messageList.add(new Message("Error during creation of database dump", MessageStatus.ERROR));
-				return;
+			if (includeSQLdump){
+				Path tmpSql = Paths.get(TMP_FOLDER, "/sql/goobi.sql");
+				if (tmpSql.toFile().exists()){
+					String myCommand = command.replaceAll("DATABASE_TEMPFILE", TMP_FOLDER + "/sql/goobi.sql");
+					String[] commandArray = myCommand.split(", ");
+					Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
+					int processComplete = runtimeProcess.waitFor();
+					if (processComplete == 0) {
+						messageList.add(new Message("SQL dump successfully imported", MessageStatus.OK));
+					} else {
+						messageList.add(new Message("Error during importing the database dump", MessageStatus.ERROR));
+						return;
+					}
+				} else {
+					messageList.add(new Message("An SQL dump was not contained in the zip file and gets skipped.", MessageStatus.WARNING));
+				}
 			}
-			messageList.add(new Message("Start replacing metadata folders.", MessageStatus.OK));
-			messageList.add(new Message("Delete old metadata folder.", MessageStatus.OK));
-			String METADATA_FOLDER = ConfigurationHelper.getInstance().getMetadataFolder();
-			FileUtils.deleteDirectory(Paths.get(METADATA_FOLDER).toFile());
-			messageList.add(new Message("Old metadata folder deleted.", MessageStatus.OK));
-			messageList.add(new Message("Start to import new metadata folder.", MessageStatus.OK));
-			Path tmpMetadataFolder = Paths.get(TMP_FOLDER, METADATA_FOLDER);
-			Files.move(tmpMetadataFolder, Paths.get(METADATA_FOLDER));
-			messageList.add(new Message("Import successfully finished", MessageStatus.OK));
+			
+			// add all rulesets into zip
+			if (includeRulesets){
+				replaceFolder(ConfigurationHelper.getInstance().getRulesetFolder());
+			}
+			// add all configurations into zip
+			if (includeConfiguration){
+				replaceFolder(ConfigurationHelper.getInstance().getConfigurationFolder());
+			}
+			// add all scripts into zip
+			if (includeScripts){
+				replaceFolder(ConfigurationHelper.getInstance().getScriptsFolder());
+			}
+			// add all dockets into zip
+			if (includeDockets){
+				replaceFolder(ConfigurationHelper.getInstance().getXsltFolder());
+			}
+			// add all plugins into zip
+			if (includePlugins){
+				replaceFolder(ConfigurationHelper.getInstance().getPluginFolder());
+			}
+			// add all metadata content into zip
+			if (includeMetadata){
+				replaceFolder(ConfigurationHelper.getInstance().getMetadataFolder());
+			}
+			
+			messageList.add(new Message("Entire Goobi dump import finished successfully.", MessageStatus.OK));
 		} catch (IOException | InterruptedException e) {
 			log.error("Exception while importing data from zip file", e);
 			messageList.add(new Message("Exception while importing data from zip file: " + e.getMessage(),
 					MessageStatus.ERROR));
+		}
+	}
+	
+	private void replaceFolder(String folder) throws IOException, InterruptedException {
+		Path tmpMetadataFolder = Paths.get(TMP_FOLDER, folder);
+		// just do the replacement if the target exists in the unzipped file
+		if (tmpMetadataFolder.toFile().exists()){
+			FileUtils.deleteDirectory(Paths.get(folder).toFile());	
+			messageList.add(new Message("Deleted old folder: " + folder, MessageStatus.OK));
+			Files.move(tmpMetadataFolder, Paths.get(folder));
+			messageList.add(new Message("Folder: " + folder + " replaced successfully", MessageStatus.OK));
+		} else {
+			messageList.add(new Message("Folder: " + folder + " was not contained in the zip file and gets skipped.", MessageStatus.WARNING));
 		}
 	}
 	

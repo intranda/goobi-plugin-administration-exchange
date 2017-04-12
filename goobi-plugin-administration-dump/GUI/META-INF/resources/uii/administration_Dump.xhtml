@@ -113,10 +113,10 @@
 
 								<div class="col-sm-6">
 								
-									<h:outputText value="#{msgs.plugin_dump_downloadExplaination}" styleClass="block"/>
-									
+									<h:outputText styleClass="alert alert-warning block" value="#{msgs.plugin_dump_downloadExplaination}" />
+								
 									<h:commandLink title="#{msgs.plugin_dump_includeSQLdump}" action="#{NavigationForm.Reload}"
-										styleClass="margin-top-most margin-left-5">
+										styleClass="margin-left-5">
 										<i class="fa #{AdministrationForm.administrationPlugin.exporter.includeSQLdump?'fa-check-square':'fa-square-o'} margin-right-5"/>
 										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.includeSQLdump}" target="#{AdministrationForm.administrationPlugin.exporter.includeSQLdump}"/>
 										<f:ajax render="downloadForm" execute="@form" />
@@ -200,8 +200,8 @@
 								<div class="col-sm-6">
 									<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.exporter.messageList}" id="messagelist">
 										<span class="block"> <i
-											class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : 'fa-exclamation-triangle font-red'}"></i>
-											<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : 'font-red'}" />
+											class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : item.status == 'WARNING'?'fa-exclamation-triangle font-orange':'fa-exclamation-triangle font-red'}"></i>
+											<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : item.status == 'WARNING'?'font-orange':'font-red'}" />
 										</span>
 									</ui:repeat>
 								</div>
@@ -214,13 +214,14 @@
 						<h:panelGroup rendered="#{NavigationForm.uiStatus.plugin_admin_dump eq 'tab2'}">
 		
 							<div class="col-sm-6">
-								<h:outputText value="#{msgs.plugin_dump_uploadExplaination}" styleClass="block"/>
+
+								<h:outputText styleClass="alert alert-danger block" value="#{msgs.plugin_dump_uploadExplaination}" />
 										
-									<h:form id="myform" styleClass="form-horizontal form-bordered" prependId="false" 
-										enctype="multipart/form-data">
+								<h:form id="myform" styleClass="form-horizontal form-bordered" prependId="false" 
+									enctype="multipart/form-data">
 								
 									<h:commandLink title="#{msgs.plugin_dump_replaceSQLdump}" action="#{NavigationForm.Reload}"
-										styleClass="margin-top-most margin-left-5">
+										styleClass="margin-left-5">
 										<i class="fa #{AdministrationForm.administrationPlugin.importer.includeSQLdump?'fa-check-square':'fa-square-o'} margin-right-5"/>
 										<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.importer.includeSQLdump}" target="#{AdministrationForm.administrationPlugin.importer.includeSQLdump}"/>
 										<f:ajax render="myform" execute="@form" />
@@ -312,8 +313,8 @@
 								
 									<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.importer.messageList}" id="messagelist">
 										<span class="block"> <i
-											class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : 'fa-exclamation-triangle font-red'}"></i>
-											<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : 'font-red'}" />
+											class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : item.status == 'WARNING'?'fa-exclamation-triangle font-orange':'fa-exclamation-triangle font-red'}"></i>
+											<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : item.status == 'WARNING'?'font-orange':'font-red'}" />
 										</span>
 									</ui:repeat>
 								</h:form>
