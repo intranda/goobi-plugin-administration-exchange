@@ -130,7 +130,6 @@ public class Importer {
 	/**
 	 * internal method for unzipping the content of an uploaded zip file
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void unzipUploadedFile() throws IOException{
 		messageList.add(new Message("Starting to extract the uploaded ZIP file into " + TMP_FOLDER, MessageStatus.OK));
 		
