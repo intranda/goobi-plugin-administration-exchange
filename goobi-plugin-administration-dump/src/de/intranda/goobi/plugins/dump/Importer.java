@@ -32,7 +32,7 @@ public class Importer {
 	private int numberCurrentFile = 0;
 	private List<Message> messageList;
 	private Path importFile;
-
+	private boolean finished = false;
 	private boolean confirmation = false;
 	private boolean includeRulesets = false;
 	private boolean includeScripts = false;
@@ -56,6 +56,7 @@ public class Importer {
 	 * @param event
 	 */
 	public void uploadFile(FileUploadEvent event) {
+		finished = false;
 		numberAllFiles = 0;
 		numberCurrentFile = 0;
 		messageList = new ArrayList<Message>();
@@ -236,6 +237,7 @@ public class Importer {
 			}
 			
 			messageList.add(new Message("Entire Goobi dump import finished successfully.", MessageStatus.OK));
+			finished = true;
 		} catch (IOException | InterruptedException e) {
 			log.error("Exception while importing data from zip file", e);
 			messageList.add(new Message("Exception while importing data from zip file: " + e.getMessage(),
@@ -243,6 +245,14 @@ public class Importer {
 		}
 	}
 	
+	
+	/**
+	 * internal method to replace a given folder of Goobi with the one from the unzipped uploaded file
+	 * 
+	 * @param folder
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	private void replaceFolder(String folder) throws IOException, InterruptedException {
 		Path tmpMetadataFolder = Paths.get(TMP_FOLDER, folder);
 		// just do the replacement if the target exists in the unzipped file

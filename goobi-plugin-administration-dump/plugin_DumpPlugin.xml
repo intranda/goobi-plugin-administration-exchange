@@ -4,4 +4,10 @@
     <commandExport>/bin/sh\, -c\, /usr/local/bin/mysqldump -u goobi -pgoobi goobi &gt; DATABASE_TEMPFILE</commandExport>
 	<commandImport>/bin/sh\, -c\, /usr/local/bin/mysql -u goobi -pgoobi goobi &lt; DATABASE_TEMPFILE</commandImport>
 	
+	<exclude label="images-Ordner" regex=".*images.*"/>
+	<exclude label="master-Ordner" regex=".*master.*"/>
+	<exclude label="media-Ordner" regex=".*media.*"/>
+	<exclude label="tif-Dateien" regex=".*tif"/>
+	<exclude label="tiffwriter.conf-Datei" regex=".*tiffwriter.conf"/>
+	
 </config_plugin>

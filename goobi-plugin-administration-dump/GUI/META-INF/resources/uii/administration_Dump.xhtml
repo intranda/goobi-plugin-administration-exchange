@@ -173,6 +173,32 @@
 											<h:outputText value="#{msgs.plugin_dump_includeMetadata}" styleClass="font-black"/>
 										</h:commandLink><br/>
 										
+										
+										<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.exporter.includeMetadata}">
+											<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.exporter.excludeList}" id="excludelist">
+												<h:commandLink title="#{item.label} (#{item.regex})" action="#{NavigationForm.Reload}" style="margin-left:30px;">
+													<i class="fa #{item.use?'fa-check-square':'fa-square-o'} margin-right-5"/>
+													<f:setPropertyActionListener value="#{not item.use}" target="#{item.use}"/>
+													<f:ajax render="downloadForm" execute="@form" />
+													<h:outputText value="#{msgs.plugin_dump_ignoreContent}: #{item.label}" styleClass="font-black"/>
+												</h:commandLink><br/>
+											</ui:repeat>
+										</h:panelGroup>
+										
+										<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.exporter.includeMetadata}">
+											<h:commandLink title="#{msgs.plugin_dump_restrictToIDs}" action="#{NavigationForm.Reload}"
+												style="margin-left:30px;">
+												<i class="fa #{AdministrationForm.administrationPlugin.exporter.restrict?'fa-check-square':'fa-square-o'} margin-right-5"/>
+												<f:setPropertyActionListener value="#{not AdministrationForm.administrationPlugin.exporter.restrict}" target="#{AdministrationForm.administrationPlugin.exporter.restrict}"/>
+												<f:ajax render="downloadForm" execute="@form" />
+												<h:outputText value="#{msgs.plugin_dump_restrictToIDs}" styleClass="font-black"/>
+											</h:commandLink>
+											<h:inputTextarea value="#{AdministrationForm.administrationPlugin.exporter.restrictIDs}" 
+												rendered="#{AdministrationForm.administrationPlugin.exporter.restrict}"
+												styleClass="form-control" style="margin-left:45px;width:94%;"/>
+											<br/>
+										</h:panelGroup>
+										
 										<h:commandLink title="#{msgs.plugin_dump_downloadConfirmation}" action="#{NavigationForm.Reload}"
 											styleClass="btn font-size-s margin-top-most">
 											<i class="fa #{AdministrationForm.administrationPlugin.exporter.confirmation?'fa-check-square':'fa-square-o'} margin-right-5"/>
@@ -188,24 +214,36 @@
 											<h:outputText value="#{msgs.plugin_dump_downloadDump}" />
 										</h:commandLink>
 	
-										<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.exporter.numberAllFiles > 0}">
-											<div class="progress margin-top-most" title="#{AdministrationForm.administrationPlugin.exporter.progress}%" style="height:22px;border:1px solid #ccc;">
-												<div title="#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}" data-toggle="tooltip" class="progress-bar" style="background-color:#368ee0;height:100%;margin-top: 0px; width:#{AdministrationForm.administrationPlugin.exporter.progress}%">
-												#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}
+										<h:panelGroup id="progresspanel">
+											<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.exporter.numberAllFiles > 0 and !AdministrationForm.administrationPlugin.exporter.finished}">
+												<div class="progress margin-top-most" title="#{AdministrationForm.administrationPlugin.exporter.progress}%" style="height:22px;border:1px solid #ccc;">
+													<div title="#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}" data-toggle="tooltip" class="progress-bar" style="background-color:#368ee0;height:100%;margin-top: 0px; width:#{AdministrationForm.administrationPlugin.exporter.progress}%">
+													#{AdministrationForm.administrationPlugin.exporter.numberCurrentFile} / #{AdministrationForm.administrationPlugin.exporter.numberAllFiles}
+													</div>
 												</div>
-											</div>
+											</h:panelGroup>
+											
+											<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.exporter.finished}" styleClass="block font-green margin-top-most">
+												<i class="fa fa-lg fa-check margin-right-5 margin-left-5"/>
+												<h:outputText value="#{msgs.plugin_dump_exportFinished}"/>
+											</h:panelGroup>
+											
+											
 										</h:panelGroup>
-						                    
-										<p:poll interval="2" update="downloadForm" />
+
+										<p:poll interval="2" update="downloadForm:progresspanel" />
+						                <p:poll interval="2" update="downloadForm:messagepanel" />
 									</div>
 	
 									<div class="col-sm-6">
-										<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.exporter.messageList}" id="messagelist">
-											<span class="block"> <i
-												class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : item.status == 'WARNING'?'fa-exclamation-triangle font-orange':'fa-exclamation-triangle font-red'}"></i>
-												<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : item.status == 'WARNING'?'font-orange':'font-red'}" />
-											</span>
-										</ui:repeat>
+										<h:panelGroup id="messagepanel">
+											<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.exporter.messageList}" id="messagelist">
+												<span class="block"> <i
+													class="margin-right-5 fa #{item.status == 'OK' ? 'fa-check font-green' : item.status == 'WARNING'?'fa-exclamation-triangle font-orange':'fa-exclamation-triangle font-red'}"></i>
+													<h:outputText value="#{item.message}" styleClass="#{item.status == 'OK' ? 'font-green' : item.status == 'WARNING'?'font-orange':'font-red'}" />
+												</span>
+											</ui:repeat>
+										</h:panelGroup>
 									</div>
 	
 								</h:form>
@@ -295,7 +333,7 @@
 									</h:form>
 	
 									<h:form id="progressform">
-										<h:panelGroup id="myprogress" rendered="#{AdministrationForm.administrationPlugin.importer.numberAllFiles > 0}">
+										<h:panelGroup id="myprogress" rendered="#{AdministrationForm.administrationPlugin.importer.numberAllFiles > 0 and !AdministrationForm.administrationPlugin.importer.finished}">
 											<div class="progress margin-top-most" title="#{AdministrationForm.administrationPlugin.importer.progress}%" style="height:22px;border:1px solid #ccc;">
 												<div title="#{AdministrationForm.administrationPlugin.importer.numberCurrentFile} / #{AdministrationForm.administrationPlugin.importer.numberAllFiles}" data-toggle="tooltip" class="progress-bar" style="background-color:#368ee0;height:100%;margin-top: 0px; width:#{AdministrationForm.administrationPlugin.importer.progress}%">
 												#{AdministrationForm.administrationPlugin.importer.numberCurrentFile} / #{AdministrationForm.administrationPlugin.importer.numberAllFiles}
@@ -303,6 +341,11 @@
 											</div>
 										</h:panelGroup>
 										
+										<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.importer.finished}" styleClass="block font-green margin-top-most">
+											<i class="fa fa-lg fa-check margin-right-5 margin-left-5"/>
+											<h:outputText value="#{msgs.plugin_dump_importFinished}"/>
+										</h:panelGroup>
+																				
 										<p:poll interval="2" update="progressform" />
 									
 									</h:form>
