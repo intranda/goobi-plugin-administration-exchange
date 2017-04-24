@@ -141,7 +141,7 @@ public class Exporter {
 	}
 
 	private void addFolder(ZipOutputStream zos, String inFolder, boolean isMetadataFolder) throws IOException, InterruptedException {
-		numberAllFiles = DumpHelper.getFilesCount(new File(inFolder));
+		numberAllFiles = ExchangeHelper.getFilesCount(new File(inFolder));
 		numberCurrentFile = 0;
 		Path srcDir = Paths.get(inFolder);
 		addDirToArchive(zos, srcDir, "/opt/digiverso/goobi", isMetadataFolder);

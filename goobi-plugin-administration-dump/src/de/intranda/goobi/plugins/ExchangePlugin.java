@@ -13,10 +13,10 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @PluginImplementation
 @Data
-public class DumpPlugin implements IAdministrationPlugin, IPlugin {
+public class ExchangePlugin implements IAdministrationPlugin, IPlugin {
 
-	private static final String PLUGIN_NAME = "DumpPlugin";
-	private static final String GUI = "/uii/administration_Dump.xhtml";
+	private static final String PLUGIN_NAME = "ExchangePlugin";
+	private static final String GUI = "/uii/administration_exchange.xhtml";
 	
 	private Exporter exporter;
 	private Importer importer;
@@ -24,7 +24,7 @@ public class DumpPlugin implements IAdministrationPlugin, IPlugin {
 	/**
 	 * Constructor for parameter initialisation from config file
 	 */
-	public DumpPlugin() {
+	public ExchangePlugin() {
 		XMLConfiguration config = ConfigPlugins.getPluginConfig(this);
 		exporter = new Exporter(config);
 		importer = new Importer(config);

@@ -2,7 +2,7 @@ package de.intranda.goobi.plugins.dump;
 
 import java.io.File;
 
-public class DumpHelper {
+public class ExchangeHelper {
 
 	/**
      * public static method to count the number of files in the path and in its subdirectories
