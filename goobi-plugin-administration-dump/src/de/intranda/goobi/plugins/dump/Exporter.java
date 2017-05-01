@@ -48,12 +48,14 @@ public class Exporter {
 	private String restrictIDs = "";
 	
 	private String command;
-	private String SQL_DUMP_PATH = "/opt/digiverso/goobi/tmp/goobi.sql";
+	private String sqlFilePath;
 	private String ZIP_SQL_DUMP_PATH = "/sql";
 
 	public Exporter(XMLConfiguration config) {
 		confirmation = false;
 		command = config.getString("commandExport", "/bin/sh/export.sh");
+		sqlFilePath = ConfigurationHelper.getInstance().getTemporaryFolder() + "goobi.sql"; 
+		
 		excludeList = new ArrayList<Exclude>();
 		
 		int excludes = config.getMaxIndex("exclude");
@@ -84,7 +86,7 @@ public class Exporter {
 
 			// add database into zip
 			if (includeSQLdump){
-				String myCommand = command.replaceAll("DATABASE_TEMPFILE", SQL_DUMP_PATH);
+				String myCommand = command.replaceAll("DATABASE_TEMPFILE", sqlFilePath);
 				String[] commandArray = myCommand.split(", ");
 
 				Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
@@ -98,7 +100,7 @@ public class Exporter {
 					return;
 				}
 				messageList.add(new Message("Add database dump to archive.", MessageStatus.OK));
-				Path sqlDump = Paths.get(SQL_DUMP_PATH);
+				Path sqlDump = Paths.get(sqlFilePath);
 				addDirToArchive(zos, sqlDump, ZIP_SQL_DUMP_PATH, false);
 			}
 			
@@ -141,12 +143,25 @@ public class Exporter {
 	}
 
 	private void addFolder(ZipOutputStream zos, String inFolder, boolean isMetadataFolder) throws IOException, InterruptedException {
-		numberAllFiles = ExchangeHelper.getFilesCount(new File(inFolder));
+		numberAllFiles = getFilesCount(new File(inFolder));
 		numberCurrentFile = 0;
 		Path srcDir = Paths.get(inFolder);
-		addDirToArchive(zos, srcDir, "/opt/digiverso/goobi", isMetadataFolder);
+//		addDirToArchive(zos, srcDir, "/opt/digiverso/goobi", isMetadataFolder);
+		addDirToArchive(zos, srcDir, "", isMetadataFolder);
 	}
 	
+    private int getFilesCount(File file) {
+	  File[] files = file.listFiles();
+	  int count = 0;
+	  for (File f : files)
+	    if (f.isDirectory())
+	      count += getFilesCount(f);
+	    else
+	      count++;
+
+	  return count;
+	}
+    
 	/**
 	 * private method to add content to zip file
 	 * 
@@ -159,7 +174,7 @@ public class Exporter {
 		if (StringUtils.isNotBlank(parrentDirectoryName)) {
 			zipEntryName = parrentDirectoryName + "/" + srcFile.toFile().getName();
 		}
-
+		
 		boolean ignoreThis = checkIfPathShallBeIgnored(zipEntryName, isMetadataFolder);
 		if (!ignoreThis){
 			if (Files.isDirectory(srcFile)) {
@@ -272,4 +287,5 @@ public class Exporter {
     		return result;
     	}
     }
+
 }

@@ -43,11 +43,12 @@ public class Importer {
 	private boolean includeSQLdump = false;
 	
 	private String command;
-	private String TMP_FOLDER = "/opt/digiverso/goobi/tmp/dump";
+	private String tempDumpFolder;
 
 	public Importer(XMLConfiguration config) {
 		messageList = new ArrayList<Message>();
 		command = config.getString("commandImport", "/bin/sh/import.sh");
+		tempDumpFolder = ConfigurationHelper.getInstance().getTemporaryFolder() + "dump";
 	}
 	
 	/**
@@ -132,11 +133,11 @@ public class Importer {
 	 * internal method for unzipping the content of an uploaded zip file
 	 */
 	private void unzipUploadedFile() throws IOException{
-		messageList.add(new Message("Starting to extract the uploaded ZIP file into " + TMP_FOLDER, MessageStatus.OK));
+		messageList.add(new Message("Starting to extract the uploaded ZIP file into " + tempDumpFolder, MessageStatus.OK));
 		
-		Path temp = Paths.get(TMP_FOLDER);
+		Path temp = Paths.get(tempDumpFolder);
 		if (temp.toFile().exists()){
-			messageList.add(new Message("Cleanup temp folder " + TMP_FOLDER + " first.", MessageStatus.OK));
+			messageList.add(new Message("Cleanup temp folder " + tempDumpFolder + " first.", MessageStatus.OK));
 			NIOFileUtils.deleteDir(temp);
 		}
 		
@@ -150,7 +151,7 @@ public class Importer {
 		ZipEntry ze = zis.getNextEntry();
 		while (ze != null) {
 			String fileName = ze.getName();
-			Path newFile = Paths.get(TMP_FOLDER, fileName);
+			Path newFile = Paths.get(tempDumpFolder, fileName);
 			
 			if (ze.isDirectory()) {
 				messageList.add(new Message("Creating directory:" + ze.getName(), MessageStatus.OK));
@@ -160,7 +161,7 @@ public class Importer {
 				try{
 					if (!newFile.getParent().toFile().exists()){
 						Files.createDirectories(newFile.getParent());
-						messageList.add(new Message("Creating parent directory:" + newFile.getParent(), MessageStatus.OK));
+						messageList.add(new Message("Creating directory:" + newFile.getParent(), MessageStatus.OK));
 					}
 				}catch(FileAlreadyExistsException e){
 					log.info("Folder does exist already and does not get created again: " + newFile.getParent());
@@ -194,9 +195,9 @@ public class Importer {
 		
 		try {
 			if (includeSQLdump){
-				Path tmpSql = Paths.get(TMP_FOLDER, "/sql/goobi.sql");
+				Path tmpSql = Paths.get(tempDumpFolder, "/sql/goobi.sql");
 				if (tmpSql.toFile().exists()){
-					String myCommand = command.replaceAll("DATABASE_TEMPFILE", TMP_FOLDER + "/sql/goobi.sql");
+					String myCommand = command.replaceAll("DATABASE_TEMPFILE", tempDumpFolder + "/sql/goobi.sql");
 					String[] commandArray = myCommand.split(", ");
 					Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
 					int processComplete = runtimeProcess.waitFor();
@@ -211,29 +212,29 @@ public class Importer {
 				}
 			}
 			
-			// add all rulesets into zip
+			// add all rulesets from zip
 			if (includeRulesets){
-				replaceFolder(ConfigurationHelper.getInstance().getRulesetFolder());
+				replaceFolder("rulesets");
 			}
-			// add all configurations into zip
-			if (includeConfiguration){
-				replaceFolder(ConfigurationHelper.getInstance().getConfigurationFolder());
-			}
-			// add all scripts into zip
+			// add all scripts from zip
 			if (includeScripts){
-				replaceFolder(ConfigurationHelper.getInstance().getScriptsFolder());
+				replaceFolder("scripts");
 			}
-			// add all dockets into zip
+			// add all dockets from zip
 			if (includeDockets){
-				replaceFolder(ConfigurationHelper.getInstance().getXsltFolder());
+				replaceFolder("xslt");
 			}
-			// add all plugins into zip
+			// add all plugins from zip
 			if (includePlugins){
-				replaceFolder(ConfigurationHelper.getInstance().getPluginFolder());
+				replaceFolder("plugins");
 			}
-			// add all metadata content into zip
+			// add all metadata content from zip
 			if (includeMetadata){
-				replaceFolder(ConfigurationHelper.getInstance().getMetadataFolder());
+				replaceFolder("metadata");
+			}
+			// add all configurations from zip
+			if (includeConfiguration){
+				replaceFolder("config");
 			}
 			
 			messageList.add(new Message("Entire Goobi dump import finished successfully.", MessageStatus.OK));
@@ -254,15 +255,15 @@ public class Importer {
 	 * @throws InterruptedException
 	 */
 	private void replaceFolder(String folder) throws IOException, InterruptedException {
-		Path tmpMetadataFolder = Paths.get(TMP_FOLDER, folder);
+		Path tmpMetadataFolder = Paths.get(tempDumpFolder, folder);
 		// just do the replacement if the target exists in the unzipped file
 		if (tmpMetadataFolder.toFile().exists()){
-			FileUtils.deleteDirectory(Paths.get(folder).toFile());	
-			messageList.add(new Message("Deleted old folder: " + folder, MessageStatus.OK));
-			Files.move(tmpMetadataFolder, Paths.get(folder));
-			messageList.add(new Message("Folder: " + folder + " replaced successfully", MessageStatus.OK));
+			FileUtils.deleteDirectory(Paths.get(ConfigurationHelper.getInstance().getGoobiFolder() + folder).toFile());	
+			messageList.add(new Message("Deleted old folder: " + ConfigurationHelper.getInstance().getGoobiFolder() + folder, MessageStatus.OK));
+			Files.move(tmpMetadataFolder, Paths.get(ConfigurationHelper.getInstance().getGoobiFolder() + folder));
+			messageList.add(new Message("Folder " + folder + " replaced successfully", MessageStatus.OK));
 		} else {
-			messageList.add(new Message("Folder: " + folder + " was not contained in the zip file and gets skipped.", MessageStatus.WARNING));
+			messageList.add(new Message("Folder " + folder + " was not contained in the zip file and gets skipped.", MessageStatus.WARNING));
 		}
 	}
 	
