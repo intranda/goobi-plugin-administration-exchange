@@ -85,7 +85,9 @@ public class Exporter {
 
 			// add database into zip
 			if (includeSQLdump){
-				addFolder(zos, ConfigurationHelper.getInstance().getGoobiFolder() + "db/", false);
+				if (new File (ConfigurationHelper.getInstance().getGoobiFolder() + "db/").exists()){
+					addFolder(zos, ConfigurationHelper.getInstance().getGoobiFolder() + "db/", false);
+				}
 				String myCommand = command.replaceAll("DATABASE_TEMPFILE", sqlFilePath);
 				String[] commandArray = myCommand.split(", ");
 
