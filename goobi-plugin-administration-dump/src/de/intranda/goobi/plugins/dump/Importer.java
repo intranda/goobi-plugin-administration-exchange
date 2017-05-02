@@ -47,7 +47,7 @@ public class Importer {
 
 	public Importer(XMLConfiguration config) {
 		messageList = new ArrayList<Message>();
-		command = config.getString("commandImport", "/bin/sh/import.sh");
+		command = config.getString("commandImport", "/bin/sh/noImportScriptDefined.sh");
 		tempDumpFolder = ConfigurationHelper.getInstance().getTemporaryFolder() + "dump";
 	}
 	
@@ -154,14 +154,14 @@ public class Importer {
 			Path newFile = Paths.get(tempDumpFolder, fileName);
 			
 			if (ze.isDirectory()) {
-				messageList.add(new Message("Creating directory:" + ze.getName(), MessageStatus.OK));
+				messageList.add(new Message("Creating directory: " + ze.getName(), MessageStatus.OK));
 				Files.createDirectories(newFile);
 			} else{
 				numberCurrentFile++;
 				try{
 					if (!newFile.getParent().toFile().exists()){
 						Files.createDirectories(newFile.getParent());
-						messageList.add(new Message("Creating directory:" + newFile.getParent(), MessageStatus.OK));
+						messageList.add(new Message("Creating directory: " + newFile.getParent(), MessageStatus.OK));
 					}
 				}catch(FileAlreadyExistsException e){
 					log.info("Folder does exist already and does not get created again: " + newFile.getParent());
@@ -195,6 +195,7 @@ public class Importer {
 		
 		try {
 			if (includeSQLdump){
+				replaceFolder("db");
 				Path tmpSql = Paths.get(tempDumpFolder, "/sql/goobi.sql");
 				if (tmpSql.toFile().exists()){
 					String myCommand = command.replaceAll("DATABASE_TEMPFILE", tempDumpFolder + "/sql/goobi.sql");
@@ -205,7 +206,6 @@ public class Importer {
 						messageList.add(new Message("SQL dump successfully imported", MessageStatus.OK));
 					} else {
 						messageList.add(new Message("Error during importing the database dump", MessageStatus.ERROR));
-						return;
 					}
 				} else {
 					messageList.add(new Message("An SQL dump was not contained in the zip file and gets skipped.", MessageStatus.WARNING));

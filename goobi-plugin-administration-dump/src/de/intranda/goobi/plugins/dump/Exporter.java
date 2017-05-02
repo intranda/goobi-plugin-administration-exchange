@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.FacesContextHelper;
-import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.NIOFileUtils;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
@@ -53,7 +52,7 @@ public class Exporter {
 
 	public Exporter(XMLConfiguration config) {
 		confirmation = false;
-		command = config.getString("commandExport", "/bin/sh/export.sh");
+		command = config.getString("commandExport", "noExportScriptDefined.sh");
 		sqlFilePath = ConfigurationHelper.getInstance().getTemporaryFolder() + "goobi.sql"; 
 		
 		excludeList = new ArrayList<Exclude>();
@@ -86,6 +85,7 @@ public class Exporter {
 
 			// add database into zip
 			if (includeSQLdump){
+				addFolder(zos, ConfigurationHelper.getInstance().getGoobiFolder() + "db/", false);
 				String myCommand = command.replaceAll("DATABASE_TEMPFILE", sqlFilePath);
 				String[] commandArray = myCommand.split(", ");
 
@@ -97,7 +97,6 @@ public class Exporter {
 					messageList.add(new Message("Created SQL dump successfully.", MessageStatus.OK));
 				} else {
 					messageList.add(new Message("Error during creation of database dump.", MessageStatus.ERROR));
-					return;
 				}
 				messageList.add(new Message("Add database dump to archive.", MessageStatus.OK));
 				Path sqlDump = Paths.get(sqlFilePath);
