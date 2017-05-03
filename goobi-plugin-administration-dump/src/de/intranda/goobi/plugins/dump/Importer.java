@@ -1,5 +1,6 @@
 package de.intranda.goobi.plugins.dump;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -219,6 +220,13 @@ public class Importer {
 			// add all scripts from zip
 			if (includeScripts){
 				replaceFolder("scripts");
+				// make all scripts executable
+				File[] scripts = new File(ConfigurationHelper.getInstance().getGoobiFolder() + "scripts").listFiles();
+				for (File s : scripts){
+					if (!s.isDirectory()){
+						s.setExecutable(true,false);
+					}
+				}
 			}
 			// add all dockets from zip
 			if (includeDockets){
