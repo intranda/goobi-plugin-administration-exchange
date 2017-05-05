@@ -80,7 +80,7 @@ public class Exporter {
 			HttpServletResponse response = (HttpServletResponse) facesContext.getExternalContext().getResponse();
 			OutputStream out = response.getOutputStream();
 			response.setContentType("application/zip");
-			response.setHeader("Content-Disposition", "attachment;filename=\"goobidump.zip\"");
+			response.setHeader("Content-Disposition", "attachment;filename=\"dump.goobi\"");
 			ZipOutputStream zos = new ZipOutputStream(out);
 
 			// add database into zip

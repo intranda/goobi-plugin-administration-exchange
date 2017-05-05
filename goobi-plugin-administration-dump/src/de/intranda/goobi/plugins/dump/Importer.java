@@ -68,18 +68,18 @@ public class Importer {
 			String filename = event.getFile().getFileName();
 			storeUploadedFile(filename, event.getFile().getInputstream());
 		} catch (IOException e) {
-			log.error("IOException while uploading the zip file", e);
+			log.error("IOException while uploading the goobi dump file", e);
 			messageList.add(
-					new Message("IOException while uploading the zip file: " + e.getMessage(), MessageStatus.ERROR));
+					new Message("IOException while uploading the goobi dump file: " + e.getMessage(), MessageStatus.ERROR));
 		}
 		
 		// start the unzipping
 		try {
 			unzipUploadedFile();
 		} catch (IOException e) {
-			log.error("IOException while unzipping the uploaded file", e);
+			log.error("IOException while extracting the uploaded file", e);
 			messageList.add(
-					new Message("IOException while unzipping the uploaded: " + e.getMessage(), MessageStatus.ERROR));
+					new Message("IOException while extracting the uploaded file: " + e.getMessage(), MessageStatus.ERROR));
 		}
 		
 		// start to replace the goobi content with the content of the uploaded unzipped file 
@@ -134,7 +134,7 @@ public class Importer {
 	 * internal method for unzipping the content of an uploaded zip file
 	 */
 	private void unzipUploadedFile() throws IOException{
-		messageList.add(new Message("Starting to extract the uploaded ZIP file into " + tempDumpFolder, MessageStatus.OK));
+		messageList.add(new Message("Starting to extract the uploaded file into " + tempDumpFolder, MessageStatus.OK));
 		
 		Path temp = Paths.get(tempDumpFolder);
 		if (temp.toFile().exists()){
@@ -185,7 +185,7 @@ public class Importer {
 		}
 		zis.closeEntry();
 		zis.close();
-		messageList.add(new Message("ZIP file successfully extracted.", MessageStatus.OK));
+		messageList.add(new Message("File successfully extracted.", MessageStatus.OK));
 	}
 	
 	/**
@@ -211,7 +211,7 @@ public class Importer {
 							messageList.add(new Message("Error during importing the database dump", MessageStatus.ERROR));
 						}
 					} else {
-						messageList.add(new Message("An SQL dump was not contained in the zip file and gets skipped.", MessageStatus.WARNING));
+						messageList.add(new Message("An SQL dump was not contained in the file and gets skipped.", MessageStatus.WARNING));
 					}
 				}else{
 					messageList.add(new Message("Skipping importing the sql dump import command as it is not configured", MessageStatus.OK));
@@ -253,8 +253,8 @@ public class Importer {
 			messageList.add(new Message("Entire Goobi dump import finished successfully.", MessageStatus.OK));
 			finished = true;
 		} catch (IOException | InterruptedException e) {
-			log.error("Exception while importing data from zip file", e);
-			messageList.add(new Message("Exception while importing data from zip file: " + e.getMessage(),
+			log.error("Exception while importing data from uploaded file", e);
+			messageList.add(new Message("Exception while importing data from uploaded file: " + e.getMessage(),
 					MessageStatus.ERROR));
 		}
 	}
@@ -276,7 +276,7 @@ public class Importer {
 			Files.move(tmpMetadataFolder, Paths.get(ConfigurationHelper.getInstance().getGoobiFolder() + folder));
 			messageList.add(new Message("Folder " + folder + " replaced successfully", MessageStatus.OK));
 		} else {
-			messageList.add(new Message("Folder " + folder + " was not contained in the zip file and gets skipped.", MessageStatus.WARNING));
+			messageList.add(new Message("Folder " + folder + " was not contained in the uploaded file and gets skipped.", MessageStatus.WARNING));
 		}
 	}
 	
