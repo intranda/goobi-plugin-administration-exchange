@@ -48,7 +48,7 @@ public class Importer {
 
 	public Importer(XMLConfiguration config) {
 		messageList = new ArrayList<Message>();
-		command = config.getString("commandImport", "/bin/sh/noImportScriptDefined.sh");
+		command = config.getString("commandImport", "");
 		tempDumpFolder = ConfigurationHelper.getInstance().getTemporaryFolder() + "dump";
 	}
 	
@@ -197,19 +197,24 @@ public class Importer {
 		try {
 			if (includeSQLdump){
 				replaceFolder("db");
-				Path tmpSql = Paths.get(tempDumpFolder, "/sql/goobi.sql");
-				if (tmpSql.toFile().exists()){
-					String myCommand = command.replaceAll("DATABASE_TEMPFILE", tempDumpFolder + "/sql/goobi.sql");
-					String[] commandArray = myCommand.split(", ");
-					Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
-					int processComplete = runtimeProcess.waitFor();
-					if (processComplete == 0) {
-						messageList.add(new Message("SQL dump successfully imported", MessageStatus.OK));
+
+				if (command.length()>0){
+					Path tmpSql = Paths.get(tempDumpFolder, "/sql/goobi.sql");
+					if (tmpSql.toFile().exists()){
+						String myCommand = command.replaceAll("DATABASE_TEMPFILE", tempDumpFolder + "/sql/goobi.sql");
+						String[] commandArray = myCommand.split(", ");
+						Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
+						int processComplete = runtimeProcess.waitFor();
+						if (processComplete == 0) {
+							messageList.add(new Message("SQL dump successfully imported", MessageStatus.OK));
+						} else {
+							messageList.add(new Message("Error during importing the database dump", MessageStatus.ERROR));
+						}
 					} else {
-						messageList.add(new Message("Error during importing the database dump", MessageStatus.ERROR));
+						messageList.add(new Message("An SQL dump was not contained in the zip file and gets skipped.", MessageStatus.WARNING));
 					}
-				} else {
-					messageList.add(new Message("An SQL dump was not contained in the zip file and gets skipped.", MessageStatus.WARNING));
+				}else{
+					messageList.add(new Message("Skipping importing the sql dump import command as it is not configured", MessageStatus.OK));
 				}
 			}
 			

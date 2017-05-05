@@ -52,7 +52,7 @@ public class Exporter {
 
 	public Exporter(XMLConfiguration config) {
 		confirmation = false;
-		command = config.getString("commandExport", "noExportScriptDefined.sh");
+		command = config.getString("commandExport", "");
 		sqlFilePath = ConfigurationHelper.getInstance().getTemporaryFolder() + "goobi.sql"; 
 		
 		excludeList = new ArrayList<Exclude>();
@@ -88,21 +88,26 @@ public class Exporter {
 				if (new File (ConfigurationHelper.getInstance().getGoobiFolder() + "db/").exists()){
 					addFolder(zos, ConfigurationHelper.getInstance().getGoobiFolder() + "db/", false);
 				}
-				String myCommand = command.replaceAll("DATABASE_TEMPFILE", sqlFilePath);
-				String[] commandArray = myCommand.split(", ");
-
-				Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
-				int processComplete = runtimeProcess.waitFor();
-
-				// check if SQL dump generation was successfull
-				if (processComplete == 0) {
-					messageList.add(new Message("Created SQL dump successfully.", MessageStatus.OK));
-				} else {
-					messageList.add(new Message("Error during creation of database dump.", MessageStatus.ERROR));
+				
+				if (command.length()>0){
+					String myCommand = command.replaceAll("DATABASE_TEMPFILE", sqlFilePath);
+					String[] commandArray = myCommand.split(", ");
+	
+					Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
+					int processComplete = runtimeProcess.waitFor();
+	
+					// check if SQL dump generation was successfull
+					if (processComplete == 0) {
+						messageList.add(new Message("Created SQL dump successfully.", MessageStatus.OK));
+					} else {
+						messageList.add(new Message("Error during creation of database dump.", MessageStatus.ERROR));
+					}
+					messageList.add(new Message("Add database dump to archive.", MessageStatus.OK));
+					Path sqlDump = Paths.get(sqlFilePath);
+					addDirToArchive(zos, sqlDump, ZIP_SQL_DUMP_PATH, false);
+				}else{
+					messageList.add(new Message("Skipping sql dump command as it is not configured.", MessageStatus.OK));
 				}
-				messageList.add(new Message("Add database dump to archive.", MessageStatus.OK));
-				Path sqlDump = Paths.get(sqlFilePath);
-				addDirToArchive(zos, sqlDump, ZIP_SQL_DUMP_PATH, false);
 			}
 			
 			// add all rulesets into zip
