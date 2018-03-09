@@ -6,7 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Goobi"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/jspf.core-1.0.0.jar"/>
-	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/lombok-1.12.4.jar"/>
 	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/commons-lang-2.4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JSF 2.0">
 		<attributes>
@@ -20,5 +19,6 @@
 	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/commons-io-2.5.jar"/>
 	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/commons-collections-3.2.2.jar"/>
 	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/commons-configuration-1.6.jar"/>
+	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/lombok.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
