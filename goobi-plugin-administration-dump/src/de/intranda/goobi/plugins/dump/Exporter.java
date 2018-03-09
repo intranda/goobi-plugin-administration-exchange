@@ -231,9 +231,9 @@ public class Exporter {
 			boolean IdIsCorrect = false;
 			String ids[] = restrictIDs.split(",");
 			for (String s : ids) {
-				if (path.equals(ConfigurationHelper.getInstance().getMetadataFolder() + s) || path.startsWith(ConfigurationHelper.getInstance().getMetadataFolder() + s + "/")){
+//				if (path.equals(ConfigurationHelper.getInstance().getMetadataFolder() + s) || path.startsWith(ConfigurationHelper.getInstance().getMetadataFolder() + s + "/")){
 					IdIsCorrect = true;
-				}
+//				}
 			}
 			if (!IdIsCorrect){
 				ignoreThis = true;

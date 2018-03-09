@@ -195,28 +195,6 @@ public class Importer {
 		messageList.add(new Message("Starting to replace existing content in Goobi.", MessageStatus.OK));
 		
 		try {
-			if (includeSQLdump){
-				replaceFolder("db");
-
-				if (command.length()>0){
-					Path tmpSql = Paths.get(tempDumpFolder, "/sql/goobi.sql");
-					if (tmpSql.toFile().exists()){
-						String myCommand = command.replaceAll("DATABASE_TEMPFILE", tempDumpFolder + "/sql/goobi.sql");
-						String[] commandArray = myCommand.split(", ");
-						Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
-						int processComplete = runtimeProcess.waitFor();
-						if (processComplete == 0) {
-							messageList.add(new Message("SQL dump successfully imported", MessageStatus.OK));
-						} else {
-							messageList.add(new Message("Error during importing the database dump", MessageStatus.ERROR));
-						}
-					} else {
-						messageList.add(new Message("An SQL dump was not contained in the file and gets skipped.", MessageStatus.WARNING));
-					}
-				}else{
-					messageList.add(new Message("Skipping importing the sql dump import command as it is not configured", MessageStatus.OK));
-				}
-			}
 			
 			// add all rulesets from zip
 			if (includeRulesets){
@@ -248,6 +226,30 @@ public class Importer {
 			// add all configurations from zip
 			if (includeConfiguration){
 				replaceFolder("config");
+			}
+			
+			// insert SQL content (dump or folder)
+			if (includeSQLdump){
+				if (command.length()>0){
+					Path tmpSql = Paths.get(tempDumpFolder, "/sql/goobi.sql");
+					if (tmpSql.toFile().exists()){
+						String myCommand = command.replaceAll("DATABASE_TEMPFILE", tempDumpFolder + "/sql/goobi.sql");
+						String[] commandArray = myCommand.split(", ");
+						Process runtimeProcess = Runtime.getRuntime().exec(commandArray);
+						int processComplete = runtimeProcess.waitFor();
+						if (processComplete == 0) {
+							messageList.add(new Message("SQL dump successfully imported", MessageStatus.OK));
+						} else {
+							messageList.add(new Message("Error during importing the database dump", MessageStatus.ERROR));
+						}
+					} else {
+						messageList.add(new Message("An SQL dump was not contained in the file and gets skipped.", MessageStatus.WARNING));
+					}
+				}else{
+					messageList.add(new Message("Skipping importing the sql dump import command as it is not configured", MessageStatus.OK));
+				}
+				
+				replaceFolder("db");
 			}
 			
 			messageList.add(new Message("Entire Goobi dump import finished successfully.", MessageStatus.OK));
