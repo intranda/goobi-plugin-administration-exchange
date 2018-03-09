@@ -153,35 +153,37 @@ public class Importer {
 		while (ze != null) {
 			String fileName = ze.getName();
 			Path newFile = Paths.get(tempDumpFolder, fileName);
-			
-			if (ze.isDirectory()) {
-				messageList.add(new Message("Creating directory: " + ze.getName(), MessageStatus.OK));
-				Files.createDirectories(newFile);
-			} else{
-				numberCurrentFile++;
-				try{
-					if (!newFile.getParent().toFile().exists()){
-						Files.createDirectories(newFile.getParent());
-						messageList.add(new Message("Creating directory: " + newFile.getParent(), MessageStatus.OK));
+			if (!newFile.toFile().isHidden()){
+				if (ze.isDirectory()) {
+					messageList.add(new Message("Creating directory: " + ze.getName(), MessageStatus.OK));
+					Files.createDirectories(newFile);
+				} else{
+					numberCurrentFile++;
+					try{
+						if (!newFile.getParent().toFile().exists()){
+							Files.createDirectories(newFile.getParent());
+							messageList.add(new Message("Creating directory: " + newFile.getParent(), MessageStatus.OK));
+						}
+					}catch(FileAlreadyExistsException e){
+						log.info("Folder does exist already and does not get created again: " + newFile.getParent());
 					}
-				}catch(FileAlreadyExistsException e){
-					log.info("Folder does exist already and does not get created again: " + newFile.getParent());
-				}
-				try{
-					Files.createFile(newFile);
-				}catch (FileAlreadyExistsException e){
-					//messageList.add(new Message("File exists already and does not get created again:" + ze.getName(), MessageStatus.OK));
-				}
+					try{
+						Files.createFile(newFile);
+					}catch (FileAlreadyExistsException e){
+						//messageList.add(new Message("File exists already and does not get created again:" + ze.getName(), MessageStatus.OK));
+					}
+					
+					FileOutputStream fos = new FileOutputStream(newFile.toFile());
+					byte[] buffer = new byte[1024];
+					int len;
+					while ((len = zis.read(buffer)) > 0) {
+						fos.write(buffer, 0, len);
+					}
+					fos.close();
 				
-				FileOutputStream fos = new FileOutputStream(newFile.toFile());
-				byte[] buffer = new byte[1024];
-				int len;
-				while ((len = zis.read(buffer)) > 0) {
-					fos.write(buffer, 0, len);
 				}
-				fos.close();
-				ze = zis.getNextEntry();
 			}
+			ze = zis.getNextEntry();
 		}
 		zis.closeEntry();
 		zis.close();
