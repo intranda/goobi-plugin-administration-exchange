@@ -15,7 +15,7 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 @Data
 public class ExchangePlugin implements IAdministrationPlugin, IPlugin {
 
-	private static final String PLUGIN_NAME = "intranda_admin_exchange";
+	private static final String PLUGIN_NAME = "intranda_administration_exchange";
 	private static final String GUI = "/uii/administration_exchange.xhtml";
 	
 	private Exporter exporter;
