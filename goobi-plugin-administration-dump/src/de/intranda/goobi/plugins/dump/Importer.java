@@ -22,6 +22,7 @@ import org.primefaces.event.FileUploadEvent;
 
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.NIOFileUtils;
+import de.sub.goobi.helper.StorageProvider;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
 
@@ -139,7 +140,7 @@ public class Importer {
 		Path temp = Paths.get(tempDumpFolder);
 		if (temp.toFile().exists()){
 			messageList.add(new Message("Cleanup temp folder " + tempDumpFolder + " first.", MessageStatus.OK));
-			NIOFileUtils.deleteDir(temp);
+			StorageProvider.getInstance().deleteDir(temp);
 		}
 		
 		//count the content

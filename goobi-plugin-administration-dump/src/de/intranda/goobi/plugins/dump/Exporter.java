@@ -20,7 +20,9 @@ import org.apache.commons.lang.StringUtils;
 
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.FacesContextHelper;
+import de.sub.goobi.helper.FilesystemHelper;
 import de.sub.goobi.helper.NIOFileUtils;
+import de.sub.goobi.helper.StorageProvider;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
 
@@ -185,7 +187,7 @@ public class Exporter {
 		if (!ignoreThis){
 			if (Files.isDirectory(srcFile)) {
 				messageList.add(new Message("Add folder " + zipEntryName + " to archive.", MessageStatus.OK));
-				for (Path file : NIOFileUtils.listFiles(srcFile.toString())) {
+				for (Path file : StorageProvider.getInstance().listFiles(srcFile.toString())) {
 					addDirToArchive(zos, file, zipEntryName, isMetadataFolder);
 					continue;
 				}
