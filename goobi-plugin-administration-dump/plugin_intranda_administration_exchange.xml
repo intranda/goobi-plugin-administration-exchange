@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config_plugin>
 	
-	<!--   mac path 
+	<!--  mac path 
     <commandExport>/bin/sh\, -c\, /usr/local/bin/mysqldump -u goobi -pgoobi goobi &gt; DATABASE_TEMPFILE</commandExport>
 	<commandImport>/bin/sh\, -c\, /usr/local/bin/mysql -u goobi -pgoobi goobi &lt; DATABASE_TEMPFILE</commandImport>
 	-->
 	
-	<!--   linux path 
+	<!--  linux path 
     <commandExport>/bin/sh\, -c\, /usr/local/bin/mysqldump -u goobi -pgoobi goobi &gt; DATABASE_TEMPFILE</commandExport>
 	<commandImport>/bin/sh\, -c\, /usr/local/bin/mysql -u goobi -pgoobi goobi &lt; DATABASE_TEMPFILE</commandImport>
 	-->
 	
-	<!--   docker path -->
+	<!--  docker path -->
     <commandExport>/bin/sh\, -c\, /usr/local/bin/mysqldump -h goobi-db -u goobi -pgoobi goobi &gt; DATABASE_TEMPFILE</commandExport>
 	<commandImport>/bin/sh\, -c\, /usr/local/bin/mysql -h goobi-db -u goobi -pgoobi goobi &lt; DATABASE_TEMPFILE</commandImport>
 	
