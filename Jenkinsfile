@@ -24,7 +24,7 @@ pipeline {
 
     stage('build') {
       steps {
-        sh 'mvn -f goobi-plugin-administration-dump/pom.xml install'
+        sh 'mvn -f goobi-plugin-administration-exchange/pom.xml install'
         recordIssues enabledForFailure: true, aggregatingResults: true, tools: [java(), javaDoc()]
       }
     }
@@ -37,7 +37,7 @@ pipeline {
         }
       }
       steps {
-        sh 'mvn -f goobi-plugin-administration-dump/pom.xml -DskipTests=true deploy'
+        sh 'mvn -f goobi-plugin-administration-exchange/pom.xml -DskipTests=true deploy'
       }
     }
   }
