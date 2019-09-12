@@ -28,18 +28,6 @@ pipeline {
         recordIssues enabledForFailure: true, aggregatingResults: true, tools: [java(), javaDoc()]
       }
     }
-
-    stage('deployment to maven repository') {
-      when {
-        anyOf {
-        branch 'master'
-        branch 'v*.*.*'
-        }
-      }
-      steps {
-        sh 'mvn -f goobi-plugin-administration-exchange/pom.xml -DskipTests=true deploy'
-      }
-    }
   }
   
   post {
