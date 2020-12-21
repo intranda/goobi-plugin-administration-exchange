@@ -1,4 +1,4 @@
-# Goobi Administration Plugin: Exchange
+# Goobi workflow Plugin: Exchange
 
 This is the Goobi Plugin to do an export and import of entire data content as dump from one Goobi to another one entirely.
 
@@ -33,11 +33,3 @@ Contact | Details
 **Address**       | Bertha-von-Suttner-Str. 9, 37085 Göttingen, Germany
 **Web site**      | https://www.intranda.com
 **Twitter**       | https://twitter.com/intranda
-
-
-
-
-
-
-
-
