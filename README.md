@@ -1,6 +1,10 @@
 # Goobi workflow Plugin: Exchange
 
-This is the Goobi Plugin to do an export and import of entire data content as dump from one Goobi to another one entirely.
+<img src="https://goobi.io/wp-content/uploads/logo_goobi_plugin.png" align="right" style="margin:0 0 20px 20px;" alt="Plugin for Goobi workflow" width="175" height="109">
+
+Administration plugin for Goobi workflow to do an import and export of the entire database dump and files.
+
+This is a plugin for Goobi workflow, the open source workflow tracking software for digitisation projects. More information about Goobi workflow is available under https://goobi.io. If you want to get in touch with the user community simply go to https://community.goobi.io.
 
 ## Plugin details
 
